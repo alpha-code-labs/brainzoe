@@ -29,7 +29,7 @@ class CustomError extends Error {
     }
   }
 
-  class ConflicError extends CustomError {
+  class ConflictError extends CustomError {
     constructor(message){
       super('Conflict', message, 409);
     }
@@ -37,5 +37,5 @@ class CustomError extends Error {
 
 
 
-  module.exports = {InvalidParameterError, AuthenticationError, NotFoundError, ConflicError};
+  module.exports = {InvalidParameterError, AuthenticationError, NotFoundError, ConflictError};
   

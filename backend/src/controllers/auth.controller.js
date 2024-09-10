@@ -45,8 +45,12 @@ const registerByUserName = async(req, res, next)=>{
     try{
         const {userName, password} = req.body;
 
+        console.log(userName, password, 'username.. password..')
+
+        if(!userName || !password) throw new InvalidParameterError('Username and password is required')
+
         //check if username already taken
-        const existingUser = userService.findUserByUsername(userName);
+        const existingUser = await userService.findUserByUsername(userName);
 
         if(existingUser) throw new ConflictError(`Username already taken`);
 
@@ -62,6 +66,7 @@ const registerByUserName = async(req, res, next)=>{
 const loginUser = async (req, res, next)=>{
     try{
         const  {userName, password}  = req.body;
+        if(!userName || !password) throw new InvalidParameterError('Username and password is required')
 
         const user = await userService.findUserByUsername(userName);
         if(!user) throw new NotFoundError('User not found');

@@ -3,6 +3,7 @@ const {getUserProfile, updateUserCoins} = require('../controllers/user.controlle
 const { authenticate } = require('../middlewares/authenticate.middleware.js');
 const router = express.Router();
 
+router.get('/', (req, res)=> res.send(200).json('This is user route'));
 router.get('/profile', authenticate, getUserProfile);
 router.patch('/coins', authenticate, updateUserCoins);
 

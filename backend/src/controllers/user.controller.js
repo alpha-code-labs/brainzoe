@@ -1,9 +1,7 @@
 const userService = require('../services/user.service.js');
 
-const getUserProfile = async (err, req, res, next)=>{
+const getUserProfile = async (req, res, next)=>{
     try{
-        if(err) throw err;
-
         const user = req.user;
         return res.status(200).json({user, error:null});
         
@@ -12,9 +10,8 @@ const getUserProfile = async (err, req, res, next)=>{
     }
 }
 
-const updateUserCoins = async (err, req, res, next)=>{
+const updateUserCoins = async (req, res, next)=>{
     try{
-        if(err) throw err;
         const {conins} = req.body;
         await userService.updateUserCoins(conins);
 

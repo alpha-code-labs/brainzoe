@@ -18,7 +18,7 @@ app.get('/', (req, res)=> {
 })
 
 app.use('/auth', authRouter);
-app.use('/users', userRouter);
+app.use('/user', userRouter);
 
 app.use(errorHanlder);
 

@@ -1,5 +1,6 @@
 const User = require('../models/user.model.js');
 const {InvalidParameterError, NotFoundError, ConflicError} = require('../utils/errors.js');
+const bcrypt = require('bcrypt');
 
 const registerUser = async ({firstName, lastName, email, guid})=>{
         if(!firstName, !lastName, !email, !guid){
@@ -18,13 +19,14 @@ const getUserByGoogleId = async (guid)=>{
     return await User.findOne({googleId: guid});
 }
 
-const findUserByUsername = async (userId)=>{
+const findUserByUsername = async (userName)=>{
     return await User.findOne({userName});
 }
 
-const registerByUserName =  async(userName)=>{
+const registerByUserName =  async(userName, password)=>{
     if(!userName) throw new InvalidParameterError('Username is required');
-    const user = await User.create({userName, coins:0});
+    const hashedPassword = await bcrypt.hash(password, 8);
+    const user = await User.create({userName, password:hashedPassword, coins:0});
     return user;
 }
 
