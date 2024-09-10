@@ -17,6 +17,7 @@ import Math from './components/gameplayscreen/gamplaymathscreen.js/MathGame';
 import MathsGame from './components/gameplayscreen/gamplaymathscreen.js/MathGame';
 import { store } from './redux/store';
 import { Provider } from 'react-redux';
+import Login from './components/Login';
 
 const Stack = createStackNavigator();
 
@@ -38,7 +39,7 @@ function App() {
 <Stack.Screen name="Home" component={Home}
  options={{ headerShown: false }}
 />
-<Stack.Screen name="phonenoscreen" component={Phonenoscreen}
+<Stack.Screen name="login" component={Login}
  options={{ headerShown: false }}
 />
 <Stack.Screen name="Flipflop" component={Flipflop}/>
