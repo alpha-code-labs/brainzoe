@@ -29,6 +29,13 @@ class CustomError extends Error {
     }
   }
 
+  class ConflicError extends CustomError {
+    constructor(message){
+      super('Conflict', message, 409);
+    }
+  }
 
-  module.exports = {InvalidParameterError, AuthenticationError, NotFoundError};
+
+
+  module.exports = {InvalidParameterError, AuthenticationError, NotFoundError, ConflicError};
   

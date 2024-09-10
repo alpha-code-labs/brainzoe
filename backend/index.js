@@ -3,6 +3,9 @@ const dotenv = require('dotenv');
 const errorHanlder = require('./src/middlewares/error.middleware.js');
 const connectToDb = require('./src/config/db.js');
 const authRouter = require('./src/routes/auth.routes.js');
+const userRouter = require('./src/routes/user.routes.js');
+
+const {authenticate} = require('./src/middlewares/error.middleware.js');
 
 dotenv.config();
 
@@ -15,6 +18,7 @@ app.get('/', (req, res)=> {
 })
 
 app.use('/auth', authRouter);
+app.use('/users', userRouter);
 
 app.use(errorHanlder);
 
