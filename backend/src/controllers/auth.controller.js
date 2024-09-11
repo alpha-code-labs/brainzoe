@@ -25,6 +25,10 @@ const verifyGoogleUser = async(req, res, next)=>{
         const guid = payload.sub;
         const verifiedEmail = payload.email_verified;
 
+        if(!firstName, !lastName, !email, !guid){
+            throw new InvalidParameterError('Token missing required fields');
+        }
+
         const user_ = await userService.getUserByGoogleId(guid);
 
         if (user_) {

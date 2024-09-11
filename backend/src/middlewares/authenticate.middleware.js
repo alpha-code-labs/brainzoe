@@ -3,9 +3,10 @@ const userService = require('../services/user.service.js');
 
 const {AuthenticationError} = require('../utils/errors.js');
 
-const authenticate = async (err, req, res, next)=>{
+const authenticate = async (req, res, next)=>{
     try{
         const token = req.headers.authorization?.split(" ")[1];
+        console.log('token..', token)
 
         if(!token) throw new AuthenticationError('Token not provided');
 
