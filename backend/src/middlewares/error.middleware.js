@@ -22,11 +22,17 @@ const handleError = (error) => {
 const errorHanlder = (err, req, res, next) =>{
     console.log('middleware handling error.. ')
     logError(err);
-    const error = handleError(err);
-    res.status(error.statusCode).json({
-        error: error.error,
-        message: error.message,
-    })
+    if(err.statusCode){
+        res.status(err.statusCode).json({
+            error: err.name,
+            message: err.message,
+        })
+    }else{
+        //unknown error... log and shut the process
+        console.log(err);
+        process.exit(1);
+    }
+    
 }
 
 
