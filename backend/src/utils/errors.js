@@ -21,7 +21,7 @@ class CustomError extends Error {
     constructor(message){
         super('AuthenticationFailed', message, 401);
     }
-  }
+  } 
 
   class NotFoundError extends CustomError {
     constructor(message){
