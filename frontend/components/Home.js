@@ -24,7 +24,7 @@ export default function Home({ navigation }) {
 
  
   // useEffect(()=>{
-  //  dispatch(localCoinsFormStorage())
+  //  dispatch(localCoinsFormStorage(coin))
   // },[dispatch])
  
 

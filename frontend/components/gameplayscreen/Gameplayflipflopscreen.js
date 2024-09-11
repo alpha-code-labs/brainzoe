@@ -543,8 +543,8 @@ const Gameplayflipflopscreen = () => {
   };
 
   const onPlayAgain = () => {
+    resetGame(); // Reset the game state for a new round`
     dispatch(updatecoin(score)); // Dispatch the final score to the Redux store
-    resetGame(); // Reset the game state for a new round
     navigation.navigate('Flipflop');
   };
 

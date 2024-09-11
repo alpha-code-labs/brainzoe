@@ -28,6 +28,63 @@
 //   "configuration_version": "1"
 // }
 
+
+
+//start from here
+
+// {
+//   "project_info": {
+//     "project_number": "259813186472",
+//     "project_id": "brainzoe-87c45",
+//     "storage_bucket": "brainzoe-87c45.appspot.com"
+//   },
+//   "client": [
+//     {
+//       "client_info": {
+//         "mobilesdk_app_id": "1:259813186472:android:c442c41e41f9ecf2845b9d",
+//         "android_client_info": {
+//           "package_name": "com.brainzoe"
+//         }
+//       },
+//       "oauth_client": [],
+//       "api_key": [
+//         {
+//           "current_key": "AIzaSyBVc1ZQG3UZGTRuPSP8jyVDDyps2FcgVn4"
+//         }
+//       ],
+//       "services": {
+//         "appinvite_service": {
+//           "other_platform_oauth_client": []
+//         }
+//       }
+//     },
+//     {
+//       "client_info": {
+//         "mobilesdk_app_id": "1:259813186472:android:910387aa246ee4ae845b9d",
+//         "android_client_info": {
+//           "package_name": "com.frontend"
+//         }
+//       },
+//       "oauth_client": [],
+//       "api_key": [
+//         {
+//           "current_key": "AIzaSyBVc1ZQG3UZGTRuPSP8jyVDDyps2FcgVn4"
+//         }
+//       ],
+//       "services": {
+//         "appinvite_service": {
+//           "other_platform_oauth_client": []
+//         }
+//       }
+//     }
+//   ],
+//   "configuration_version": "1"
+// }
+
+//end here
+
+
+
 {
   "project_info": {
     "project_number": "259813186472",
@@ -42,7 +99,20 @@
           "package_name": "com.brainzoe"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "259813186472-vhol58uh9dhnkqebq0cnskpgvtj25ndl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.brainzoe",
+            "certificate_hash": "a3e8793d10fe6704050cad01946cdc9782be9490"
+          }
+        },
+        {
+          "client_id": "259813186472-pb9tjg4e6mpcvto7leb47bhsoouhf39f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBVc1ZQG3UZGTRuPSP8jyVDDyps2FcgVn4"
@@ -50,7 +120,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "259813186472-pb9tjg4e6mpcvto7leb47bhsoouhf39f.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     },
@@ -61,7 +136,12 @@
           "package_name": "com.frontend"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "259813186472-pb9tjg4e6mpcvto7leb47bhsoouhf39f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBVc1ZQG3UZGTRuPSP8jyVDDyps2FcgVn4"
@@ -69,7 +149,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "259813186472-pb9tjg4e6mpcvto7leb47bhsoouhf39f.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

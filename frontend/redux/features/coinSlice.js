@@ -10,20 +10,18 @@ export const coinSlice = createSlice({
   name: 'coin',
   initialState,
   reducers: {
-    updatecoin: async (state, action) => {
+    updatecoin: (state, action) => {
         //action.type is a string that uniquely identifies the action.
        // When you dispatch an action, Redux uses action.type to determine which reducer should handle that action
-        
-          const res = await axios.post('/update-coins', {coins})
-         state.coin += action.payload;
-         AsyncStorage.setItem('coin', state.coin.toString());
+      const coinsupdae= state.coin += action.payload;
+         console.log(coinsupdae);
+         
+        //  AsyncStorage.setItem('coin', state.coin.toString());
     },//The += operator means that the current value of state.coin is being incremented by the value provided in action.payload.
 
-    resetCoin: async (state, action)=>{
+    resetCoin: (state, action)=>{
         state.coin = 0;
-       AsyncStorage.setItem('coin', state.coin.toString());
-      
-      
+      //  AsyncStorage.setItem('coin', state.coin.toString());
     },
     totalcoins: (state,action)=>{
         state.coin=action.payload

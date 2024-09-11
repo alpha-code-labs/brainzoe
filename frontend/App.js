@@ -18,6 +18,8 @@ import MathsGame from './components/gameplayscreen/gamplaymathscreen.js/MathGame
 import { store } from './redux/store';
 import { Provider } from 'react-redux';
 import Login from './components/Login';
+import { API_BASE_URL } from '@env';
+
 
 const Stack = createStackNavigator();
 
@@ -26,12 +28,14 @@ function App() {
     SplashScreen.hide();
   },[])
 
+  console.log(process.env, API_BASE_URL, 'env contents')
+
   return (
    
 <Provider store={store}>
   
   
-<NavigationContainer>
+<NavigationContainer>                         
   <Stack.Navigator initialRouteName="Slider">
 <Stack.Screen name="Slider" component={Slider}
   options={{ headerShown: false }}
