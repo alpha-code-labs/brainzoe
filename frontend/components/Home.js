@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ImageBackground, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ImageBackground, Image, Button } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import FastImage from 'react-native-fast-image';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring } from 'react-native-reanimated';
@@ -13,24 +13,14 @@ import Maths from '../assets/flipflopimage/maths.png';
 import Country from '../assets/flipflopimage/country.png';
 import { localCoinsFormStorage, updatecoin } from '../redux/features/coinSlice';
 import { useDispatch, useSelector } from 'react-redux';
-
-
-
+import { sendAuthenticatedRequest } from '../server/auth';
 
 export default function Home({ navigation }) {
   const dispatch = useDispatch();
   const [showIntro, setShowIntro] = useState(true);
-  const coin = useSelector((state)=>state.coin)
-
+  const coin = useSelector((state) => state.coin);
+ console.log("coin value:", coin.coin);
  
-  // useEffect(()=>{
-  //  dispatch(localCoinsFormStorage(coin))
-  // },[dispatch])
- 
-
-
-  
-
   // Shared values for opacity and scaling
   const opacity = useSharedValue(0);
   const scale = useSharedValue(0);
@@ -58,15 +48,38 @@ export default function Home({ navigation }) {
     return () => clearTimeout(timer); // Clear the timer if the component unmounts
   }, [scale, opacity]);
 
+  // Function to handle sending an authenticated request
+  const handleSendRequest = () => {
+    sendAuthenticatedRequest(); // Trigger the function when button is pressed
+  };
+
   return (
     <ImageBackground source={Background} style={styles.backgroundImage}>
       <SafeAreaView style={styles.container}>
+        
+        {/* Button for sending authenticated request */}
+        {/* <TouchableOpacity style={styles.authButton} onPress={handleSendRequest}>
+          <Text style={styles.authButtonText}>Send Authenticated Request</Text>
+        </TouchableOpacity> */}
+
         {/* Top Bar */}
         <View style={styles.topBar}>
+          {/* Left Side: Coin Box */}
           <View style={styles.coinBox}>
             <Text style={styles.coinText}><Icon name="cash-outline" size={24} color="#fff" /></Text>
-            <Text style={styles.coinText}>{coin}</Text>
+            <Text style={styles.coinText}>{coin.coin}</Text>
           </View>
+
+          {/* Middle: Profile Button */}
+          <TouchableOpacity
+            style={styles.profileButton}
+            onPress={() => navigation.navigate('Profile')}  // Navigate to the Profile screen
+          >
+            <Icon name="person-circle-outline" size={36} color="#fff" />
+            <Text style={styles.profileText}>Profile</Text>
+          </TouchableOpacity>
+
+          {/* Right Side: Settings */}
           <Settings />
         </View>
 
@@ -79,9 +92,9 @@ export default function Home({ navigation }) {
                 style={styles.gif}
                 resizeMode={FastImage.resizeMode.contain}
               />
-             <Text style={styles.animatedText}>
-  Hi, I’m Zoe! I've been using my phone a lot, and I need your help to keep my brain sharp and healthy. Let's play some fun games and learn together!
-</Text>
+              <Text style={styles.animatedText}>
+                Hi, I’m Zoe! I've been using my phone a lot, and I need your help to keep my brain sharp and healthy. Let's play some fun games and learn together!
+              </Text>
             </View>
           </Animated.View>
         )}
@@ -138,6 +151,20 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     marginHorizontal: 10,
   },
+  authButton: {
+    backgroundColor: '#FF6347',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginVertical: 10,
+    marginHorizontal: 20,
+  },
+  authButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
   coinBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -149,9 +176,14 @@ const styles = StyleSheet.create({
     color: '#fff',
     marginLeft: 5,
   },
-  settingsButton: {
+  profileButton: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+  },
+  profileText: {
+    fontSize: 16,
+    color: '#fff',
+    marginLeft: 5,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,

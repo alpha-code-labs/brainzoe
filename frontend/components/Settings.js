@@ -26,7 +26,7 @@ function Settings() {
     };
 
     // Listen to app state changes
-    AppState.addEventListener('change', handleAppStateChange);
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
 
     // Play sound when the component mounts and the app is active
     playSound();
@@ -34,7 +34,7 @@ function Settings() {
     // Cleanup function to stop sound and remove event listener when component unmounts
     return () => {
       song.stop(() => console.log('Stopped due to component unmount'));
-      AppState.removeEventListener('change', handleAppStateChange);
+      subscription.remove(); // Correct way to remove the event listener
     };
   }, []);
 

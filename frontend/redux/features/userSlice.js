@@ -1,63 +1,48 @@
-//name, email, token jwt,local storage
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createSlice } from '@reduxjs/toolkit';
+import { sendAuthenticatedRequest } from '../../server/auth';
 
+const initialState = {
+  isAuthenticated: false,
+  user: {
+    userName: null,
+    coins: 0,
+  },
+};
 
-export const googleSignIn = createAsyncThunk('auth/googleSignIn', async(idToken, thunkAPI) =>{
-  //thunk handles the async logic for sending Google ID token to your backend 
-  
-    try {
-        const rsponse = await fetch('https://your-backend-url.com/api/auth/signin',{
-            method: 'POST',
-            headers:{
-                'Content-Type':'application/json',
-            },
-            body: JSON.stringify({token:idToken}) //send google ID token to backend
-
-        });
-        const data = await Response.josn()
-
-        if(Response.ok){
-            return data; // Backend should return user details and JWT token
-        }else{
-            return thunkAPI.rejectWithValue(data); // Handle any errors from the backend
-        }
-    }
-    catch(error){
-        return thunkAPI.rejectWithValue(error.message)//handle fetch errors
-
-    }
+export const userSlice = createSlice({
+  name:'auths',
+  initialState,
+  reducers: {
+    setToken: (state, action) => {
+      state.token = action.payload;
+      state.isAuthenticated = true;
+    },
+    setUser: (state, action) => {
+      state.user = action.payload; // Store the user's profile data
+    },
+    clearToken: (state) => {
+      state.token = null;
+      state.isAuthenticated = false;
+      state.user = { userName: null, coins: 0 };
+    },
+  },
 });
 
+export const { setToken, setUser, clearToken } = userSlice.actions;
 
-const userSlice = createSlice({
-    name:'auth',
-    initialState:{
-        user:null, 
-        token:null,
-        loading:false,
-        error:null,
-    },
-    reducers:{
-        logout: (state)=>{
-            state.user = null;
-            state.token=null;
-        }
-    },
-    extraReducers: (builder) =>{
-        builder
-        .addCase(googleSignIn.pending, (state)=>{
-            state.loading = true;
-            state.error =null;
-        })
-        .addCase(googleSignIn.rejected, (state,action)=>{
-            state.loading= false;
-            state.error = action.payload; // Handle any errors (e.g invalid token)
-        })
+// Async thunk action to fetch user data and store it in Redux
+export const fetchUserProfile = () => async (dispatch) => {
+    const response = await sendAuthenticatedRequest(); // Fetch the user's profile
+    console.log("User Data:", response); // Log the userData to verify structure
+  
+    if (response && response.user) {  // Check if 'user' exists in the response
+      const { userName, coins } = response.user; // Extract userName and coins from the 'user' object
+     const dis= dispatch(setUser({ userName, coins })); // Store the user's profile in Redux
+     console.log(dis);
+     
+
     }
-})
+  };
+  
 
-
-//Export action and reducer
-
-export const {logout} = userSlice.actions;
-export default userSlice.reducer
+export default userSlice.reducer;
