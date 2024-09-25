@@ -36,7 +36,9 @@ export const fetchUserProfile = () => async (dispatch) => {
     console.log("User Data:", response); // Log the userData to verify structure
   
     if (response && response.user) {  // Check if 'user' exists in the response
+  
       const { userName, coins } = response.user; // Extract userName and coins from the 'user' object
+
      const dis= dispatch(setUser({ userName, coins })); // Store the user's profile in Redux
      console.log(dis);
      

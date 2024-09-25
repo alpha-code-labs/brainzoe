@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { SafeAreaView, TextInput, Button, StyleSheet, Text, Alert } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {API_BASE_URL} from '@env'
 
 const Userlogin = ({navigation}) => {
   const [username, setUsername] = useState('');
@@ -24,7 +25,7 @@ const Userlogin = ({navigation}) => {
 
     try {
       // Make a login request to your server
-      const response = await axios.post('http://192.168.0.102:9001/auth/login', {
+      const response = await axios.post(`http://${API_BASE_URL}:9001/auth/login`, {
         userName: username,
         password: password,
       });

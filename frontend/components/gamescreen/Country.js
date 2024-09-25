@@ -5,11 +5,6 @@ function Country({ navigation }) {
   return (
     <View>
       <Text>Country</Text>
-      {/* Navigation Button to ScreenA */}
-      <Button
-        title="Play with computer"
-        onPress={() => navigation.navigate('playwithcomputer')}
-      />
       {/* Navigation Button to ScreenB */}
       <Button
         title="Play with friend"

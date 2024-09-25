@@ -1,21 +1,23 @@
-import React from 'react'
-import { Text,View,StyleSheet } from 'react-native'
-import { TouchableOpacity } from 'react-native-gesture-handler'
+import React from 'react';
+import { Text, View, StyleSheet } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
+import { useNavigation } from '@react-navigation/native'; // Import useNavigation
 
-function Maths({navigation}) {
+function Maths() {
+  const navigation = useNavigation(); // Use the navigation hook
+
   return (
     <View style={styles.container}>
-   <TouchableOpacity 
-      style={styles.squareButton}
-      onPress={() => navigation.navigate("Mathsplayscreen")}>
-     <Text style={styles.buttonText}>Play Now</Text>
-    </TouchableOpacity>
+      <TouchableOpacity 
+        style={styles.squareButton}
+        onPress={() => navigation.navigate("Mathsplayscreen")}> {/* Use navigation from the hook */}
+        <Text style={styles.buttonText}>Play Now</Text>
+      </TouchableOpacity>
     </View>
-  )
+  );
 }
 
-export default Maths
-
+export default Maths;
 
 const styles = StyleSheet.create({
   container: {
@@ -31,11 +33,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 10, // Optional: for rounded corners
     marginBottom: 20, // Space between button and other components
-  },
-  image: {
-    width: 60,
-    height: 60,
-    marginBottom: 5, // Space between image and text
   },
   buttonText: {
     color: '#fff',

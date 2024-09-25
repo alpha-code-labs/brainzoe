@@ -407,11 +407,8 @@
 
 
 
-
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Button } from 'react-native';
-import { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
-import Animated from 'react-native-reanimated';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Button, Animated } from 'react-native';
 import Gameover from './Gameover';
 import Gamewin from './Gamewin';
 import { useNavigation } from '@react-navigation/native';
@@ -445,31 +442,11 @@ const Gameplayflipflopscreen = () => {
   const [win, Setwin] = useState(false);
   const [showIntro, setShowIntro] = useState(true); // State to control the introduction modal
 
-  // Reanimated shared values and animated styles
-  const opacity = useSharedValue(0);
-  const scale = useSharedValue(0.8);
+  // Animated values for each card
+  const flipAnimations = useRef(cards.map(() => new Animated.Value(0))).current;
 
-  useEffect(() => {
-    opacity.value = 1;
-    scale.value = 1;
-  }, [showIntro]);
-
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      opacity: withTiming(opacity.value, {
-        duration: 500,
-        easing: Easing.out(Easing.ease),
-      }),
-      transform: [
-        {
-          scale: withTiming(scale.value, {
-            duration: 500,
-            easing: Easing.out(Easing.ease),
-          }),
-        },
-      ],
-    };
-  }, []);
+  // Animated value for the motivational message
+  const matchMessageOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     let interval;
@@ -504,9 +481,41 @@ const Gameplayflipflopscreen = () => {
     setTimer(0);
     setGameOver(false);
     Setwin(false);
+    // Reset flip animations
+    flipAnimations.forEach((anim) => anim.setValue(0));
   }, []);
 
+  const flipCard = (index, toValue) => {
+    Animated.timing(flipAnimations[index], {
+      toValue,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const showMatchMessage = () => {
+    Animated.sequence([
+      Animated.timing(matchMessageOpacity, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.delay(1000),
+      Animated.timing(matchMessageOpacity, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
   const handleCardPress = (index) => {
+    if (cards[index].flipped || cards[index].matched) {
+      return;
+    }
+
+    flipCard(index, 1); // Flip the card to the front
+
     const newFlippedIndices = [...flippedIndices, index];
     setCards(
       cards.map((card, i) => (i === index ? { ...card, flipped: true } : card))
@@ -522,6 +531,11 @@ const Gameplayflipflopscreen = () => {
             newFlippedIndices.includes(i) ? { ...card, matched: true } : card
           )
         );
+        setFlippedIndices([]);
+
+        // Show motivational message
+        showMatchMessage();
+
         if (matches + 1 === 2) {
           // 2 matches needed for a win in a 2x2 grid
           Setwin(true);
@@ -529,23 +543,49 @@ const Gameplayflipflopscreen = () => {
         }
       } else {
         setTimeout(() => {
+          flipCard(first, 0); // Flip back the first card
+          flipCard(second, 0); // Flip back the second card
+
           setCards(
             cards.map((card, i) =>
               newFlippedIndices.includes(i) ? { ...card, flipped: false } : card
             )
           );
+          setFlippedIndices([]);
         }, 1000);
       }
-      setFlippedIndices([]);
     } else {
       setFlippedIndices(newFlippedIndices);
     }
   };
 
   const onPlayAgain = () => {
-    resetGame(); // Reset the game state for a new round`
+    resetGame(); // Reset the game state for a new round
     dispatch(updatecoin(score)); // Dispatch the final score to the Redux store
     navigation.navigate('Flipflop');
+  };
+
+  const getCardStyle = (index) => {
+    const flipAnimation = flipAnimations[index];
+
+    const frontInterpolate = flipAnimation.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['0deg', '180deg'],
+    });
+
+    const backInterpolate = flipAnimation.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['180deg', '360deg'],
+    });
+
+    return {
+      frontAnimatedStyle: {
+        transform: [{ rotateY: frontInterpolate }],
+      },
+      backAnimatedStyle: {
+        transform: [{ rotateY: backInterpolate }],
+      },
+    };
   };
 
   return (
@@ -553,24 +593,51 @@ const Gameplayflipflopscreen = () => {
       <Text style={styles.timer}>Time: {timer}s</Text>
       <Text style={styles.score}>Score: {score}</Text>
       <View style={styles.grid}>
-        {cards.map((card, index) => (
-          <TouchableOpacity
-            key={index}
-            style={[
-              styles.card,
-              card.flipped || card.matched ? styles.flipped : styles.unflipped,
-            ]}
-            onPress={() => handleCardPress(index)}
-          >
-            {card.flipped || card.matched ? (
-              <Text style={styles.cardValue}>{card.value}</Text>
-            ) : null}
-          </TouchableOpacity>
-        ))}
+        {cards.map((card, index) => {
+          const { frontAnimatedStyle, backAnimatedStyle } = getCardStyle(index);
+
+          return (
+            <TouchableOpacity
+              key={index}
+              style={styles.cardContainer}
+              onPress={() => handleCardPress(index)}
+              activeOpacity={1}
+            >
+              <View style={styles.cardInner}>
+                <Animated.View style={[styles.flipCard, frontAnimatedStyle]}>
+                  <View style={[styles.cardFace, styles.cardBack]}>
+                    <Text style={styles.cardText}>?</Text>
+                  </View>
+                </Animated.View>
+                <Animated.View
+                  style={[
+                    styles.flipCard,
+                    styles.flipCardBack,
+                    backAnimatedStyle,
+                  ]}
+                >
+                  <View style={[styles.cardFace, styles.cardFront]}>
+                    <Text style={styles.cardText}>{card.value}</Text>
+                  </View>
+                </Animated.View>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
+      {/* Motivational Message */}
+      <Animated.View
+        style={[
+          styles.matchMessageContainer,
+          { opacity: matchMessageOpacity },
+        ]}
+      >
+        <Text style={styles.matchMessageText}>Great job! You have a match!</Text>
+      </Animated.View>
+
       {showIntro && (
-        <Animated.View style={[styles.modalBackground, animatedStyle]}>
+        <View style={styles.modalBackground}>
           <View style={styles.modalContainer}>
             <Text style={styles.introText}>Welcome to the Memory Game!</Text>
             <Text style={styles.introDescription}>
@@ -579,7 +646,7 @@ const Gameplayflipflopscreen = () => {
             </Text>
             <Button title="Start Game" onPress={() => setShowIntro(false)} />
           </View>
-        </Animated.View>
+        </View>
       )}
 
       {gameOver && !win && (
@@ -593,9 +660,9 @@ const Gameplayflipflopscreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: 'yellow',
+    alignItems: 'center',
+    paddingTop: 50,
   },
   grid: {
     width: '80%',
@@ -604,31 +671,59 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     height: '45%',
   },
-  card: {
-    width: '45%', // 45% width to fit 2 cards per row with some spacing
-    height: '45%',
+  cardContainer: {
+    width: '45%',
     margin: '2.5%',
-    aspectRatio: 1, // Square cards
-    justifyContent: 'center',
-    alignItems: 'center',
+    aspectRatio: 1,
+  },
+  cardInner: {
+    flex: 1,
+  },
+  flipCard: {
+    backfaceVisibility: 'hidden',
+    width: '100%',
+    height: '100%',
+  },
+  flipCardBack: {
+    position: 'absolute',
+    top: 0,
+  },
+  cardFace: {
+    flex: 1,
     borderRadius: 10,
     borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  unflipped: {
+  cardBack: {
     backgroundColor: '#fdbb2d',
     borderColor: '#555',
   },
-  flipped: {
+  cardFront: {
     backgroundColor: '#fff',
     borderColor: '#ddd',
   },
-  cardValue: {
+  cardText: {
     fontSize: 24,
     color: '#000',
   },
   timer: { fontSize: 20, marginBottom: 10 },
   score: { fontSize: 20, marginBottom: 10 },
   gameOver: { fontSize: 24, color: 'red', margin: 20 },
+
+  // Motivational Message Styles
+  matchMessageContainer: {
+    position: 'absolute',
+    top: '40%',
+    backgroundColor: '#00000080',
+    padding: 20,
+    borderRadius: 10,
+  },
+  matchMessageText: {
+    fontSize: 24,
+    color: '#fff',
+    textAlign: 'center',
+  },
 
   // Modal styles
   modalBackground: {
@@ -662,3 +757,4 @@ const styles = StyleSheet.create({
 });
 
 export default Gameplayflipflopscreen;
+

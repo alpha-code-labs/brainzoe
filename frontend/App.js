@@ -19,6 +19,7 @@ import Country from './components/gamescreen/Country';
 import Computer from './components/countrybutton/Computer';
 import Friend from './components/countrybutton/Friend';
 import { store } from './redux/store';
+import mazeruunergame from './components/gameplayscreen/gamplaymazerunner.js/mazeruunergame';
 
 const Stack = createStackNavigator();
 
@@ -34,7 +35,10 @@ function App() {
     const checkToken = async () => {
       try {
         const token = await AsyncStorage.getItem('token',); // Replace with your key for the token
+        const expiresIn = await AsyncStorage.getItem('tokenExpiration',); // Replace with your key for the token
         console.log("home", token);
+        console.log("expire",expiresIn);
+        
         
         if (token) {
           setInitialRoute('Home'); // Redirect to Home if token exists
@@ -71,6 +75,7 @@ function App() {
           <Stack.Screen name="Wordmatch" component={Wordmatch} />
           <Stack.Screen name="Mathsplayscreen" component={MathsGame} />
           <Stack.Screen name="Puzzle" component={Puzzle} />
+          <Stack.Screen name="Mazerunner" component={mazeruunergame} options={{ title: 'Mazerunner' }} />
           <Stack.Screen name="Country" component={Country} />
           <Stack.Screen name="playwithcomputer" component={Computer} />
           <Stack.Screen name="playwithfriend" component={Friend} />

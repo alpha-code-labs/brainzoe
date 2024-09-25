@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { SafeAreaView, TextInput, Button, StyleSheet, Text, Alert } from 'react-native';
 import axios from 'axios';
+import {API_BASE_URL} from '@env'
 
 const Register = ({navigation}) => {
   const [username, setUsername] = useState('');
@@ -16,7 +17,7 @@ const Register = ({navigation}) => {
 
     try {
       // Send a registration request to your server
-      const response = await axios.post('http://192.168.0.102:9001/auth/register', {
+      const response = await axios.post(`http://${API_BASE_URL}:9001/auth/register`, {
         userName: username,
         password: password,
       });

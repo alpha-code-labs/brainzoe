@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ImageBackground, Image, Button } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ImageBackground, Image, Share } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import FastImage from 'react-native-fast-image';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring } from 'react-native-reanimated';
@@ -13,85 +13,76 @@ import Maths from '../assets/flipflopimage/maths.png';
 import Country from '../assets/flipflopimage/country.png';
 import { localCoinsFormStorage, updatecoin } from '../redux/features/coinSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { sendAuthenticatedRequest } from '../server/auth';
 
 export default function Home({ navigation }) {
   const dispatch = useDispatch();
   const [showIntro, setShowIntro] = useState(true);
   const coin = useSelector((state) => state.coin);
- console.log("coin value:", coin.coin);
- 
-  // Shared values for opacity and scaling
+  console.log('coin value:', coin.coin);
+
   const opacity = useSharedValue(0);
   const scale = useSharedValue(0);
 
-  // Animated style for the popup container
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
     transform: [{ scale: scale.value }],
   }));
 
   useEffect(() => {
-    // Fade in the popup with a scaling effect
     opacity.value = withTiming(1, { duration: 1000 });
     scale.value = withSpring(1, { damping: 15, stiffness: 100 });
 
-    // Remove the introduction after 8 seconds
     const timer = setTimeout(() => {
-      scale.value = withTiming(0, { duration: 1000 }); // Scale down to disappear
-      opacity.value = withTiming(0, { duration: 1000 }); // Fade out
-
-      // Hide the intro after the animation
+      scale.value = withTiming(0, { duration: 1000 });
+      opacity.value = withTiming(0, { duration: 1000 });
       setTimeout(() => setShowIntro(false), 1000);
     }, 8000);
 
-    return () => clearTimeout(timer); // Clear the timer if the component unmounts
+    return () => clearTimeout(timer);
   }, [scale, opacity]);
 
-  // Function to handle sending an authenticated request
-  const handleSendRequest = () => {
-    sendAuthenticatedRequest(); // Trigger the function when button is pressed
+  const handleShare = async () => {
+    try {
+      const result = await Share.share({
+        message: 'Check out this awesome game!',
+        url: 'https://yourgameurl.com', // Replace with your app link or any content
+        title: 'Brainzoe',
+      });
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // Shared with activity type
+        } else {
+          // Shared successfully
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // Dismissed
+      }
+    } catch (error) {
+      alert(error.message);
+    }
   };
 
   return (
     <ImageBackground source={Background} style={styles.backgroundImage}>
       <SafeAreaView style={styles.container}>
-        
-        {/* Button for sending authenticated request */}
-        {/* <TouchableOpacity style={styles.authButton} onPress={handleSendRequest}>
-          <Text style={styles.authButtonText}>Send Authenticated Request</Text>
-        </TouchableOpacity> */}
-
-        {/* Top Bar */}
         <View style={styles.topBar}>
-          {/* Left Side: Coin Box */}
           <View style={styles.coinBox}>
             <Text style={styles.coinText}><Icon name="cash-outline" size={24} color="#fff" /></Text>
             <Text style={styles.coinText}>{coin.coin}</Text>
           </View>
 
-          {/* Middle: Profile Button */}
-          <TouchableOpacity
-            style={styles.profileButton}
-            onPress={() => navigation.navigate('Profile')}  // Navigate to the Profile screen
-          >
+          <TouchableOpacity style={styles.profileButton} onPress={() => navigation.navigate('Profile')}>
             <Icon name="person-circle-outline" size={36} color="#fff" />
             <Text style={styles.profileText}>Profile</Text>
           </TouchableOpacity>
 
-          {/* Right Side: Settings */}
           <Settings />
         </View>
 
-        {/* Background Overlay and Pop-Up Introduction */}
         {showIntro && (
           <Animated.View style={[styles.overlay, animatedStyle]}>
             <View style={styles.popupContainer}>
-              <FastImage
-                source={Panda}
-                style={styles.gif}
-                resizeMode={FastImage.resizeMode.contain}
-              />
+              <FastImage source={Panda} style={styles.gif} resizeMode={FastImage.resizeMode.contain} />
               <Text style={styles.animatedText}>
                 Hi, I’m Zoe! I've been using my phone a lot, and I need your help to keep my brain sharp and healthy. Let's play some fun games and learn together!
               </Text>
@@ -99,34 +90,39 @@ export default function Home({ navigation }) {
           </Animated.View>
         )}
 
-        {/* Button Grid */}
         <View style={styles.content}>
           <View style={styles.row}>
-            <TouchableOpacity style={[styles.button, styles.flipflopButton]} onPress={() => navigation.navigate("Flipflop")}>
+            <TouchableOpacity style={[styles.button, styles.flipflopButton]} onPress={() => navigation.navigate('Flipflop')}>
               <Image source={Flip} style={styles.iconImage} />
               <Text style={styles.buttonText}>Flipflop</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.button, styles.wordmatchButton]} onPress={() => navigation.navigate("Wordmatch")}>
+            <TouchableOpacity style={[styles.button, styles.wordmatchButton]} onPress={() => navigation.navigate('Wordmatch')}>
               <Image source={Car} style={styles.iconImage} />
               <Text style={styles.buttonText}>Wordmatch</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.row}>
-            <TouchableOpacity style={[styles.button, styles.mathsButton]} onPress={() => navigation.navigate("Maths")}>
+            <TouchableOpacity style={[styles.button, styles.mathsButton]} onPress={() => navigation.navigate('Maths')}>
               <Image source={Maths} style={styles.iconImage} />
               <Text style={styles.buttonText}>Maths</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.button, styles.puzzleButton]} onPress={() => navigation.navigate("Puzzle")}>
+            <TouchableOpacity style={[styles.button, styles.puzzleButton]} onPress={() => navigation.navigate('Puzzle')}>
               <Image source={Maze} style={styles.iconImage} />
               <Text style={styles.buttonText}>Puzzle</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.row}>
-            <TouchableOpacity style={[styles.button, styles.countryButton]} onPress={() => navigation.navigate("Country")}>
+            <TouchableOpacity style={[styles.button, styles.countryButton]} onPress={() => navigation.navigate('Country')}>
               <Image source={Country} style={styles.iconImage} />
               <Text style={styles.buttonText}>Country</Text>
             </TouchableOpacity>
           </View>
+
+          {/* Share Button */}
+          <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
+            <Text style={styles.shareButtonText}>Share</Text>
+          </TouchableOpacity>
+
         </View>
       </SafeAreaView>
     </ImageBackground>
@@ -150,20 +146,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#9575CD',
     borderRadius: 15,
     marginHorizontal: 10,
-  },
-  authButton: {
-    backgroundColor: '#FF6347',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-    alignItems: 'center',
-    marginVertical: 10,
-    marginHorizontal: 20,
-  },
-  authButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
   },
   coinBox: {
     flexDirection: 'row',
@@ -214,7 +196,7 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   content: {
-    flex: 1, 
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 10,
@@ -247,26 +229,25 @@ const styles = StyleSheet.create({
     width: '80%',
     height: '80%',
     resizeMode: 'contain',
-    marginBottom: 10, // Adds space between image and text
+    marginBottom: 10,
   },
   buttonText: {
     color: '#000',
     fontSize: 16,
     fontWeight: 'bold',
   },
-  flipflopButton: {
-    backgroundColor: '#FF6347',
+  shareButton: {
+    backgroundColor: '#2196F3',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginVertical: 10,
+    marginHorizontal: 20,
   },
-  wordmatchButton: {
-    backgroundColor: '#4682B4',
-  },
-  mathsButton: {
-    backgroundColor: '#32CD32',
-  },
-  puzzleButton: {
-    backgroundColor: '#FFD700',
-  },
-  countryButton: {
-    backgroundColor: '#8A2BE2',
+  shareButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
