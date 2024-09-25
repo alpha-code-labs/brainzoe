@@ -46,7 +46,7 @@ function Slider({ navigation }) {
           />
         ))}
       </View>
-      <TouchableOpacity style={styles.buttonContainer} onPress={() => navigation.navigate('login')}>
+      <TouchableOpacity style={styles.buttonContainer} onPress={() => navigation.navigate('Home')}>
         <Text style={styles.buttonText}>Next</Text>
       </TouchableOpacity>
     </SafeAreaView>

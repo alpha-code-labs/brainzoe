@@ -606,11 +606,11 @@ export default function App() {
     });
 
     // Event: Disconnection
-    socket.on('disconnect', (reason) => {
-      console.log('❌ Disconnected from the server:', reason);
-      setIsConnected(false);
-      Alert.alert('Disconnected', `Disconnected from server: ${reason}`);
-    });
+    // socket.on('disconnect', (reason) => {
+    //   console.log('❌ Disconnected from the server:', reason);
+    //   setIsConnected(false);
+    //   Alert.alert('Disconnected', `Disconnected from server: ${reason}`);
+    // });
 
     // Event: Connection Error
     socket.on('connect_error', (error) => {
@@ -783,13 +783,13 @@ export default function App() {
     socket.emit('join-room', { username });
 
     // Handle a timeout for joining
-    setTimeout(() => {
-      if (!room) {
-        Alert.alert('Timeout', 'Unable to join the room. Please try again.');
-        setIsLoading(false);
-        socket.disconnect();
-      }
-    }, 10000); // 10 seconds timeout
+    // setTimeout(() => {
+    //   if (!room) {
+    //     Alert.alert('Timeout', 'Unable to join the room. Please try again.');
+    //     setIsLoading(false);
+    //     socket.disconnect();
+    //   }
+    // }, 10000); 
   };
 
   // Function: Send Chat Message
