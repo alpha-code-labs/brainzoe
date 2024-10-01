@@ -133,6 +133,7 @@ async function addUser({ io, socket, message}) {
             //player already exists in room send them updated room
             socket.join(roomName);
             socket.emit('joined', rooms[i]);
+            return;
         }
     }
 
