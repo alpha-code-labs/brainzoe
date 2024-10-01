@@ -13,13 +13,17 @@ import Userlogin from './components/Userlogin';
 import Flipflop from './components/gamescreen/Flipflop';
 import Gameplayflipflopscreen from './components/gameplayscreen/Gameplayflipflopscreen';
 import Wordmatch from './components/gamescreen/Wordmatch';
-import MathsGame from './components/gameplayscreen/gamplaymathscreen.js/MathGame';
+import MathsGame from './components/gameplayscreen/gamplaymathscreen/MathGame';
 import Puzzle from './components/gamescreen/Puzzle';
 import Country from './components/gamescreen/Country';
 import Computer from './components/countrybutton/Computer';
 import Friend from './components/countrybutton/Friend';
 import { store } from './redux/store';
-import mazeruunergame from './components/gameplayscreen/gamplaymazerunner.js/mazeruunergame';
+import mazeruunergame from './components/gameplayscreen/gamplaymazerunner/mazeruunergame';
+import Maths from './components/gamescreen/Maths';
+import worldmatchGame from './components/gameplayscreen/gameplaywordmatchscreen/worldmatchGame';
+import { jwtDecode } from 'jwt-decode';
+import { enableScreens } from 'react-native-screens';
 
 const Stack = createStackNavigator();
 
@@ -34,23 +38,42 @@ function App() {
     // Check if token is stored and set initial route
     const checkToken = async () => {
       try {
-        const token = await AsyncStorage.getItem('token',); // Replace with your key for the token
-        const expiresIn = await AsyncStorage.getItem('tokenExpiration',); // Replace with your key for the token
-        console.log("home", token);
-        console.log("expire",expiresIn);
-        
+        // Retrieve token from AsyncStorage
+        const token = await AsyncStorage.getItem('token');
+         console.log("retrive token: ", token);
+         
         
         if (token) {
-          setInitialRoute('Home'); // Redirect to Home if token exists
+          try {
+            // Decode the token
+            const decoded = jwtDecode(token);
+            console.log("Decoded token expiration time:", new Date(decoded.exp * 1000));
+        console.log("Current time:", new Date(Date.now()));
+
+            // Check if the token has expired
+            if (decoded.exp * 1000 < Date.now()) {
+              console.log("Token has expired after 45 hours.");
+              setInitialRoute('Slider'); // Redirect to Slider or login if token is expired
+            } else {
+              console.log("Token is valid");
+              setInitialRoute('Home'); // Redirect to Home if token is valid
+            }
+          } catch (error) {
+            console.error('Error decoding token:', error);
+            setInitialRoute('Slider'); // Redirect to Slider if there's an issue decoding
+          }
         } else {
-          setInitialRoute('Slider'); // Redirect to Slider or login if no token
+          console.log("No token found");
+          setInitialRoute('Slider'); // Redirect to Slider if no token is found
         }
       } catch (error) {
         console.error('Error checking token:', error);
+        setInitialRoute('Slider'); // Redirect to Slider in case of error
       } finally {
         setLoading(false); // Stop loading once token is checked
       }
     };
+    
 
     checkToken();
   }, []);
@@ -73,6 +96,8 @@ function App() {
           <Stack.Screen name="Flipflop" component={Flipflop} />
           <Stack.Screen name="Gameplayflipflopscreen" component={Gameplayflipflopscreen} />
           <Stack.Screen name="Wordmatch" component={Wordmatch} />
+          <Stack.Screen name="gameplayworldmatchscreen" component={worldmatchGame} />
+          <Stack.Screen name="Maths" component={Maths} />
           <Stack.Screen name="Mathsplayscreen" component={MathsGame} />
           <Stack.Screen name="Puzzle" component={Puzzle} />
           <Stack.Screen name="Mazerunner" component={mazeruunergame} options={{ title: 'Mazerunner' }} />

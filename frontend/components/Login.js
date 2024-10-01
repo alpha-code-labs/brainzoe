@@ -14,13 +14,15 @@ const Register = ({navigation}) => {
       Alert.alert('Error', 'Please fill in both fields');
       return;
     }
-
+ 
+    
     try {
       // Send a registration request to your server
-      const response = await axios.post(`http://${API_BASE_URL}:9001/auth/register`, {
+      const response = await axios.post('http://192.168.1.12:9001/auth/register', {
         userName: username,
         password: password,
       });
+
    
       if (response.status === 201) {
         Alert.alert('Success', 'Registration Successful');

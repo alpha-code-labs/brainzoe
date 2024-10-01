@@ -1,27 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, Easing } from 'react-native-reanimated';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
 
-  const MathsGame = () => {
+const MathsGame = () => {
   const [questions, setQuestions] = useState([]); // Array to store generated questions
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0); // Track the current question
   const [userAnswer, setUserAnswer] = useState('');
   const [message, setMessage] = useState('');
-  const [timer, settimer] = useState(10);
+  const [timer, setTimer] = useState(10);
   const [gameOver, setGameOver] = useState(false);
   const [showMotivation, setShowMotivation] = useState(false); // State to control motivational message
   const [motivationText, setMotivationText] = useState(''); // State to store the motivational message
+  const [score, setScore] = useState(0); // State to track the score
+  const [level, setLevel] = useState(1); // State to track the difficulty level
 
   // Reanimated shared values
   const problemScale = useSharedValue(0);
   const messageOpacity = useSharedValue(0);
   const motivationOpacity = useSharedValue(0); // Shared value for motivational message
 
-  // Function to generate random math problems
+  // Function to generate random math problems with increasing difficulty
   const generateProblem = () => {
-    const num1 = Math.floor(Math.random() * 10) + 1; // Random number between 1 and 10
-    const num2 = Math.floor(Math.random() * 10) + 1; // Random number between 1 and 10
-    const operators = ['+', '-', '*'];
+    // Increase the range of numbers based on the level
+    const maxNumber = level * 10;
+    const num1 = Math.floor(Math.random() * maxNumber) + 1;
+    const num2 = Math.floor(Math.random() * maxNumber) + 1;
+
+    // Include more operators as the level increases
+    let operators = ['+', '-'];
+    if (level >= 2) operators.push('*');
+    if (level >= 3) operators.push('/');
+
     const operator = operators[Math.floor(Math.random() * operators.length)];
 
     let problem = `${num1} ${operator} ${num2}`;
@@ -38,12 +53,18 @@ import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, Eas
       case '*':
         correctAnswer = num1 * num2;
         break;
+      case '/':
+        correctAnswer = parseFloat((num1 / num2).toFixed(2)); // Round to 2 decimal places
+        problem = `${num1} ÷ ${num2}`; // Display division symbol
+        break;
+      default:
+        break;
     }
 
     return { problem, correctAnswer }; // Return the problem and its correct answer as an object
   };
 
-  // Generate 10 random questions on component mount
+  // Generate initial questions on component mount
   useEffect(() => {
     const generatedQuestions = Array.from({ length: 10 }, () => generateProblem());
     setQuestions(generatedQuestions);
@@ -51,14 +72,14 @@ import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, Eas
       damping: 5,
       stiffness: 100,
     });
-  }, []);
+  }, [level]); // Regenerate questions when the level changes
 
   // Effect to handle the timer
   useEffect(() => {
     let interval;
     if (timer > 0 && !gameOver) {
       interval = setInterval(() => {
-        settimer((prev) => prev - 1);
+        setTimer((prev) => prev - 1);
       }, 1000);
     } else if (timer === 0 && !gameOver) {
       setGameOver(true);
@@ -72,12 +93,29 @@ import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, Eas
   const handleSubmit = () => {
     const currentQuestion = questions[currentQuestionIndex];
 
-    if (parseInt(userAnswer) === currentQuestion.correctAnswer) {
-      setMessage('Correct!');
+    // Handle division answers with decimals
+    const correctAnswer = currentQuestion.correctAnswer;
+    const userAnswerFloat = parseFloat(userAnswer);
+
+    let isCorrect = false;
+
+    // For division, allow a small margin of error
+    if (currentQuestion.problem.includes('÷')) {
+      isCorrect = Math.abs(userAnswerFloat - correctAnswer) < 0.01;
+    } else {
+      isCorrect = userAnswerFloat === correctAnswer;
+    }
+
+    if (isCorrect) {
+      // Award points based on the time left (more points for faster answers)
+      const pointsEarned = timer * level; // Points depend on remaining time and level
+      setScore((prevScore) => prevScore + pointsEarned);
+
+      setMessage(`Correct! +${pointsEarned} points`);
       showMotivationalMessage(); // Show motivational message when the answer is correct
       goToNextQuestion();
     } else {
-      setMessage('Try again!');
+      setMessage('Incorrect. Try again!');
     }
 
     // Animate the feedback message
@@ -85,20 +123,29 @@ import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, Eas
       duration: 500,
       easing: Easing.out(Easing.ease),
     });
+
+    setTimeout(() => {
+      messageOpacity.value = withTiming(0, {
+        duration: 500,
+        easing: Easing.out(Easing.ease),
+      });
+    }, 1000); // Hide message after 1 second
+
+    setUserAnswer(''); // Clear the input
   };
 
   // Function to show motivational message
   const showMotivationalMessage = () => {
     const messages = [
-      "You're doing great!", 
-      "Keep it up!", 
-      "Fantastic job!", 
-      "Amazing work!", 
+      "You're doing great!",
+      'Keep it up!',
+      'Fantastic job!',
+      'Amazing work!',
       "You're on fire!",
     ];
 
     // Update motivation message based on question index
-    const motivationIndex = Math.floor(currentQuestionIndex / 3) % messages.length;
+    const motivationIndex = currentQuestionIndex % messages.length;
     setMotivationText(messages[motivationIndex]);
 
     setShowMotivation(true);
@@ -120,8 +167,7 @@ import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, Eas
   const goToNextQuestion = () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
-      settimer(10); // Reset the timer for the next question
-      setUserAnswer('');
+      setTimer(10); // Reset the timer for the next question
       setMessage('');
       problemScale.value = 0; // Reset scale before animating
       problemScale.value = withSpring(1, {
@@ -129,8 +175,17 @@ import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, Eas
         stiffness: 100,
       });
     } else {
-      setMessage('Congratulations! You have completed all questions.');
-      setGameOver(true);
+      // Increase level after completing all questions
+      if (level < 3) {
+        setLevel(level + 1);
+        setCurrentQuestionIndex(0);
+        setTimer(10);
+        setMessage(`Level Up! Welcome to Level ${level + 1}`);
+        setUserAnswer('');
+      } else {
+        setMessage('Congratulations! You have completed all levels.');
+        setGameOver(true);
+      }
     }
   };
 
@@ -138,10 +193,12 @@ import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, Eas
   const restartGame = () => {
     setGameOver(false);
     setCurrentQuestionIndex(0);
-    settimer(10);
+    setTimer(10);
     setUserAnswer('');
     setMessage('');
     setMotivationText('');
+    setScore(0);
+    setLevel(1);
     const newQuestions = Array.from({ length: 10 }, () => generateProblem());
     setQuestions(newQuestions);
   };
@@ -168,15 +225,25 @@ import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, Eas
   return (
     <View style={styles.container}>
       {/* Timer display */}
-      <Text>Time: {timer}s</Text>
+      <Text style={styles.timerText}>Time: {timer}s</Text>
+
+      {/* Score display */}
+      <Text style={styles.scoreText}>Score: {score}</Text>
+
+      {/* Level display */}
+      <Text style={styles.levelText}>Level: {level}</Text>
 
       {/* Question Counter */}
-      <Text>Question: {currentQuestionIndex + 1} / {questions.length}</Text>
+      <Text style={styles.questionCounter}>
+        Question: {currentQuestionIndex + 1} / {questions.length}
+      </Text>
 
       {/* Animated math problem */}
       <Animated.View style={animatedProblemStyle}>
         <Text style={styles.problemText}>
-          {questions.length > 0 && !gameOver ? questions[currentQuestionIndex].problem : 'Loading...'}
+          {questions.length > 0 && !gameOver
+            ? questions[currentQuestionIndex].problem
+            : 'Loading...'}
         </Text>
       </Animated.View>
 
@@ -220,44 +287,50 @@ import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, Eas
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#eef',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
   },
   problemText: {
-    fontSize: 24,
+    fontSize: 32,
     marginBottom: 20,
+    fontWeight: 'bold',
   },
   input: {
     width: '80%',
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
+    height: 50,
+    borderColor: '#555',
+    borderWidth: 2,
+    borderRadius: 10,
     marginBottom: 20,
-    paddingHorizontal: 10,
+    paddingHorizontal: 15,
+    fontSize: 18,
+    backgroundColor: '#fff',
   },
   button: {
     backgroundColor: '#4CAF50', // Green background
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 10,
     marginTop: 20,
   },
   buttonText: {
     color: 'white', // White text
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     textAlign: 'center',
   },
   messageText: {
-    fontSize: 18,
+    fontSize: 20,
     marginTop: 20,
+    fontWeight: 'bold',
   },
   restartButton: {
     backgroundColor: '#FF5722', // Orange background
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 10,
     marginTop: 20,
   },
   motivationContainer: {
@@ -268,8 +341,27 @@ const styles = StyleSheet.create({
   },
   motivationText: {
     color: 'black',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
+  },
+  timerText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  scoreText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  levelText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  questionCounter: {
+    fontSize: 18,
+    marginBottom: 20,
   },
 });
 

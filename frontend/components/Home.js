@@ -11,14 +11,14 @@ import Car from '../assets/flipflopimage/ca.png';
 import Maze from '../assets/flipflopimage/maze.png';
 import Maths from '../assets/flipflopimage/maths.png';
 import Country from '../assets/flipflopimage/country.png';
-import { localCoinsFormStorage, updatecoin } from '../redux/features/coinSlice';
+import { fetchcoins, localCoinsFormStorage, updatecoin } from '../redux/features/coinSlice';
 import { useDispatch, useSelector } from 'react-redux';
 
 export default function Home({ navigation }) {
   const dispatch = useDispatch();
   const [showIntro, setShowIntro] = useState(true);
   const coin = useSelector((state) => state.coin);
-  console.log('coin value:', coin.coin);
+  console.log('coin value:', coin);
 
   const opacity = useSharedValue(0);
   const scale = useSharedValue(0);
@@ -27,6 +27,9 @@ export default function Home({ navigation }) {
     opacity: opacity.value,
     transform: [{ scale: scale.value }],
   }));
+  
+  
+
 
   useEffect(() => {
     opacity.value = withTiming(1, { duration: 1000 });
@@ -40,6 +43,12 @@ export default function Home({ navigation }) {
 
     return () => clearTimeout(timer);
   }, [scale, opacity]);
+
+ useEffect(()=>{
+    dispatch(fetchcoins())
+ },[dispatch])
+
+ 
 
   const handleShare = async () => {
     try {

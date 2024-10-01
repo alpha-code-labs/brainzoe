@@ -1,12 +1,17 @@
-import React from 'react'
-import { Text,View } from 'react-native'
+import React from 'react';
+import { Text, View, Button } from 'react-native';
 
-function Wordmatch() {
+function Wordmatch({ navigation }) {
   return (
     <View>
-    <Text>Wordmatch</Text>
+  
+      {/* Navigation Button to ScreenB */}
+      <Button
+        title="Play with friend"
+        onPress={() => navigation.navigate('gameplayworldmatchscreen')}
+      />
     </View>
-  )
+  );
 }
 
-export default Wordmatch
+export default Wordmatch;

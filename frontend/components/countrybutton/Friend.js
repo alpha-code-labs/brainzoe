@@ -606,11 +606,11 @@ export default function App() {
     });
 
     // Event: Disconnection
-    // socket.on('disconnect', (reason) => {
-    //   console.log('❌ Disconnected from the server:', reason);
-    //   setIsConnected(false);
-    //   Alert.alert('Disconnected', `Disconnected from server: ${reason}`);
-    // });
+    socket.on('disconnect', (reason) => {
+      console.log('❌ Disconnected from the server:', reason);
+      setIsConnected(false);
+      Alert.alert('Disconnected', `Disconnected from server: ${reason}`);
+    });
 
     // Event: Connection Error
     socket.on('connect_error', (error) => {
@@ -701,6 +701,9 @@ export default function App() {
       socket.off('correctGuess');
       socket.off('endRound');
       // Do not disconnect the socket here if it's shared across components
+      
+      //LEAVE THE ROOMS
+      leaveRoom()
     };
   }, [username]);
 
@@ -766,6 +769,19 @@ export default function App() {
     }
     // Do not disconnect the socket here if it's shared across components
   };
+// Function: Leave Room
+const leaveRoom = () => {
+  if (room) {
+    socket.emit('leave-room', { roomName: room.roomName, socketId: socket.id });
+    resetGame(); // Reset local state
+  }
+};
+
+useEffect(() => {
+  return () => {
+    leaveRoom();
+  };
+}, []);
 
   // Function: Join Room
   const joinRoom = () => {
@@ -787,9 +803,9 @@ export default function App() {
     //   if (!room) {
     //     Alert.alert('Timeout', 'Unable to join the room. Please try again.');
     //     setIsLoading(false);
-    //     socket.disconnect();
     //   }
     // }, 10000); 
+        // socket.disconnect();
   };
 
   // Function: Send Chat Message
@@ -839,6 +855,8 @@ export default function App() {
               <Text style={styles.buttonText}>Join Game</Text>
             )}
           </TouchableOpacity>
+ 
+
 
           {/* Connection Status */}
           <View style={styles.statusContainer}>
@@ -867,6 +885,9 @@ export default function App() {
               <Text style={styles.waitingText}>
                 Waiting for other players to join...
               </Text>
+              <TouchableOpacity onPress={leaveRoom}>
+  <Text>Leave Room</Text>
+</TouchableOpacity>
               <Text style={styles.playersHeader}>
                 Players ({users.length}/10):
               </Text>
