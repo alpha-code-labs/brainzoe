@@ -13,7 +13,12 @@ dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+    cors: {
+        origin: "*",
+        methods: ['GET', 'POST'],
+    }
+});
 
 app.use(express.json());
 
@@ -32,9 +37,9 @@ io.on('connection', (socket)=>{
     console.log('new user connection requested..', socket.id)
 
     socket.on('join-room', (message)=> userManager.addUser({io, socket, message}) );
-    socket.on('user-message', ({content, to, sender})=> userManager.handlUserMessage({io, socket, content, to, sender}));
-    socket.on('ans-update', ({ ans, questionId, socketId, roomName }) => userManager.updateAnswer({io, socket, userId, ans, questionId, roomName}));
-    socket.on('disconnect', ({userId, roomId})=> userManager.removeUser({to, socket, userId}));
+    socket.on('user-message', ({content, to, sender})=> userManager.handleUserMessage({io, socket, content, to, sender}));
+    socket.on('ans-update', ({ ans, questionId, userId, roomName }) => userManager.updateAnswer({io, socket, userId, ans, questionId, roomName}));
+    socket.on('disconnect', ({userId, to})=> userManager.removeUser({to, socket, userId}));
 })
 
 connectToDb();

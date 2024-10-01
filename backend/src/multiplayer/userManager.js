@@ -1,4 +1,4 @@
-import userService from '../services/user.service.js';
+const userService = require('../services/user.service.js');
 
 const rooms = [];
 const maxWaitToStartGame = 50; //in seconds
@@ -151,9 +151,9 @@ async function addUser({ io, socket, message}) {
         existingRoom.users.push(user);
         if (existingRoom.users.length == 2) {
             existingRoom.countStartedAt = new Date();
-            existingRoom.startsIn = maxWaitTime; //2 minutes wait before starting the game
+            existingRoom.startsIn = maxWaitToStartGame; //2 minutes wait before starting the game
         } else {
-            const diff = Math.max( maxWaitTime - Math.floor(Math.abs(new Date() - existingRoom.countStartedAt) / 1000), 0);
+            const diff = Math.max( maxWaitToStartGame - Math.floor(Math.abs(new Date() - existingRoom.countStartedAt) / 1000), 0);
             existingRoom.startsIn = diff;
         }
 
@@ -177,15 +177,13 @@ async function addUser({ io, socket, message}) {
         rooms.push(room);
         socket.join(roomName);
         socket.emit('joined', room);
-        //broadcast room changes to all users
-        io.in(existingRoom.roomName).emit('room-update', existingRoom);
     }
 
 
     const interval = setInterval(()=>{
             //check if a room need to start the game
             rooms.forEach(room=>{
-                diff = maxWaitTime-Math.floor(Math.abs(new Date() - room.countStartedAt)/1000);
+                diff = maxWaitToStartGame-Math.floor(Math.abs(new Date() - room.countStartedAt)/1000);
                 if(!room.gameStarted && diff <= 1){
                     room.gameStarted = true;
                     startQuestionInterval(room.roomName);
