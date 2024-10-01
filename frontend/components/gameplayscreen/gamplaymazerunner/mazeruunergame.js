@@ -6,6 +6,7 @@ import {
   Alert,
   Dimensions,
   Animated,
+  TouchableOpacity, // Import TouchableOpacity
 } from 'react-native';
 import Svg, { Rect, Circle } from 'react-native-svg';
 
@@ -144,6 +145,7 @@ const GridScreen = () => {
   const [gameStarted, setGameStarted] = useState(false);
   const [gameEnded, setGameEnded] = useState(false);
   const [showLetsGo, setShowLetsGo] = useState(false);
+  const [score, setScore] = useState(0); // Add score state
 
   // Animated values for user and computer positions
   const userAnimX = useRef(
@@ -230,6 +232,10 @@ const GridScreen = () => {
           // Move the user to the end position before showing the alert
           moveUser(row, col);
           setGameEnded(true);
+
+          // Update the score
+          setScore((prevScore) => prevScore + 100); // Award 100 points
+
           Alert.alert(
             'Congratulations',
             'You reached the end before the computer!',
@@ -394,8 +400,39 @@ const GridScreen = () => {
     return false;
   };
 
+  // Restart the game
+  const restartGame = () => {
+    const newGrid = createInitialGrid();
+    setGrid(newGrid);
+
+    const userStartPos = { row: 1, col: 1 };
+    const computerStartPos = { row: gridSize - 2, col: gridSize - 2 };
+
+    setUserPosition(userStartPos);
+    setComputerPosition(computerStartPos);
+    setComputerPath([computerStartPos]);
+    setTimeLeft(120); // Reset timer
+    setCountdown(3);
+    setGameStarted(false);
+    setGameEnded(false);
+    setShowLetsGo(false);
+
+    // Reset animated positions
+    userAnimX.setValue(userStartPos.col * cellSize + cellSize / 2);
+    userAnimY.setValue(userStartPos.row * cellSize + cellSize / 2);
+    computerAnimX.setValue(computerStartPos.col * cellSize + cellSize / 2);
+    computerAnimY.setValue(computerStartPos.row * cellSize + cellSize / 2);
+  };
+
   return (
     <View style={styles.container}>
+      {/* Display Score */}
+      {gameStarted && !gameEnded && (
+        <View style={styles.scoreContainer}>
+          <Text style={styles.scoreText}>Score: {score}</Text>
+        </View>
+      )}
+
       {/* Display Timer */}
       {gameStarted && !gameEnded && (
         <View style={styles.timerContainer}>
@@ -488,6 +525,13 @@ const GridScreen = () => {
           fill="#FF4500" // OrangeRed color
         />
       </Svg>
+
+      {/* Restart Button */}
+      {gameEnded && (
+        <TouchableOpacity style={styles.restartButton} onPress={restartGame}>
+          <Text style={styles.restartButtonText}>Restart Game</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -513,6 +557,17 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
   },
+  scoreContainer: {
+    position: 'absolute',
+    top: 10,
+    backgroundColor: '#000',
+    padding: 10,
+    borderRadius: 5,
+  },
+  scoreText: {
+    color: '#fff',
+    fontSize: 18,
+  },
   countdownContainer: {
     position: 'absolute',
     top: '40%',
@@ -526,6 +581,18 @@ const styles = StyleSheet.create({
     fontSize: 48,
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  restartButton: {
+    marginTop: 20,
+    backgroundColor: '#FF5722',
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 10,
+  },
+  restartButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
 

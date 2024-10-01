@@ -25,7 +25,7 @@ const Userlogin = ({navigation}) => {
 
     try {
       // Make a login request to your server
-      const response = await axios.post(`http://${API_BASE_URL}:9001/auth/login`, {
+      const response = await axios.post(`http://192.168.1.12:9001/auth/login`, {
         userName: username,
         password: password,
       });
