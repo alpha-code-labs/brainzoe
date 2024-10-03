@@ -734,13 +734,16 @@ export default function App() {
     }
 
     const guess = userAnswer.trim().toUpperCase();
+
+
     if (guess === '') {
       Alert.alert('Error', 'Please enter an answer.');
       return;
     }
 
     // Emit answer to the server
-    socket.emit('ans-update', {
+    socket.emit('ans-update', 
+      {
       ans: guess,
       questionId: currentQuestion.id,
       socketId: socket.id,
@@ -805,7 +808,8 @@ useEffect(() => {
     //     setIsLoading(false);
     //   }
     // }, 10000); 
-        // socket.disconnect();
+        // socket.disconnect(); 
+
   };
 
   // Function: Send Chat Message
@@ -892,12 +896,13 @@ useEffect(() => {
                 Players ({users.length}/10):
               </Text>
               <FlatList
-                data={users}
-                keyExtractor={(item) => item.socketId}
-                renderItem={({ item }) => (
-                  <Text style={styles.player}>{item.username}</Text>
-                )}
-              />
+  data={users}
+  keyExtractor={(item) => item.socketId || item.username} // Use unique id from your data
+  renderItem={({ item }) => (
+    <Text style={styles.player}>{item.username}</Text>
+  )}
+/>
+
 
               {/* Chat Section */}
               <View style={styles.chatBox}>
@@ -975,14 +980,15 @@ useEffect(() => {
 
               {/* Chat Section */}
               <View style={styles.chatBox}>
-                <ScrollView>
-                  {chatMessages.map((msg, index) => (
-                    <View key={index} style={styles.chatMessage}>
-                      <Text style={styles.chatSender}>{msg.sender}:</Text>
-                      <Text style={styles.chatText}>{msg.message}</Text>
-                    </View>
-                  ))}
-                </ScrollView>
+              <ScrollView>
+  {chatMessages.map((msg, index) => (
+    <View key={index} style={styles.chatMessage}>
+      <Text style={styles.chatSender}>{msg.sender}:</Text>
+      <Text style={styles.chatText}>{msg.message}</Text>
+    </View>
+  ))}
+</ScrollView>
+
                 <View style={styles.chatInputContainer}>
                   <TextInput
                     ref={messageInputRef}

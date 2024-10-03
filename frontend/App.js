@@ -23,7 +23,7 @@ import mazeruunergame from './components/gameplayscreen/gamplaymazerunner/mazeru
 import Maths from './components/gamescreen/Maths';
 import worldmatchGame from './components/gameplayscreen/gameplaywordmatchscreen/worldmatchGame';
 import { jwtDecode } from 'jwt-decode';
-import { enableScreens } from 'react-native-screens';
+
 
 const Stack = createStackNavigator();
 
@@ -39,6 +39,7 @@ function App() {
     const checkToken = async () => {
       try {
         // Retrieve token from AsyncStorage
+     
         const token = await AsyncStorage.getItem('token');
          console.log("retrive token: ", token);
          
@@ -53,6 +54,9 @@ function App() {
             // Check if the token has expired
             if (decoded.exp * 1000 < Date.now()) {
               console.log("Token has expired after 45 hours.");
+              const removetoken = await AsyncStorage.removeItem('token')
+              console.log("no token",removetoken);
+              
               setInitialRoute('Slider'); // Redirect to Slider or login if token is expired
             } else {
               console.log("Token is valid");

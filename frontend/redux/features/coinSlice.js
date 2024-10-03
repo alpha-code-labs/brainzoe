@@ -9,11 +9,12 @@ export const fetchcoins = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       // Make the API request with the correct headers
-      const response = await axios.get('http://192.168.1.12:9001/user/coins', {
+      const response = await axios.get('http://192.168.1.10:9001/user/coins', {
         headers: {
           Authorization: `Bearer ${await AsyncStorage.getItem('token')}`,
         },
       });
+
       // Check if the response status is 200 and the response contains data
       if (response.status === 200 && response.data) {
         console.log("Value of the coin from backend",response.data.coins);
@@ -41,7 +42,7 @@ export const updatedCoinsonBackend = createAsyncThunk ('coin/updatedCoinsonBacke
 try{
 const token = await AsyncStorage.getItem('token');
 console.log('trying to update coins', token, newCoins);
-const response = await axios.patch('http://192.168.1.12:9001/user/coins', {coins:newCoins},
+const response = await axios.patch('http://192.168.1.10:9001/user/coins', {coins:newCoins},
   {
     headers:{
        Authorization: `Bearer ${token}`
@@ -51,15 +52,12 @@ const response = await axios.patch('http://192.168.1.12:9001/user/coins', {coins
 
 if(response.status === 200 && response.data){
   console.log("updated coins", response.data.updatedCoins);
-
   return response.data.updatedCoins
 }
  
 }catch(error){ 
   console.log(error)
   return rejectWithValue(error.response?.data || 'Failed to update coins');
-
-
 }
 })
 
@@ -77,7 +75,8 @@ export const coinSlice = createSlice({
         state.coin += action.payload;
 
         //  AsyncStorage.setItem('coin', state.coin.toString());
-    },//The += operator means that the current value of state.coin is being incremented by the value provided in action.payload.
+    },
+    //The += operator means that the current value of state.coin is being incremented by the value provided in action.payload.
 
     resetCoin: (state, action)=>{
         state.coin = 0;
@@ -115,6 +114,7 @@ export const coinSlice = createSlice({
         state.status = 'succeeded'
         state.coin = action.payload;
       })
+
 
       .addCase(updatedCoinsonBackend.rejected, (state,action)=>{
         state.status = 'rejected'

@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
-import { SafeAreaView, TextInput, Button, StyleSheet, Text, Alert } from 'react-native';
+import { SafeAreaView, TextInput, Button, StyleSheet, Text, Alert, TouchableOpacity } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {API_BASE_URL} from '@env'
+import { API_BASE_URL } from '@env';
 
-const Userlogin = ({navigation}) => {
+const Userlogin = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  
+
   const storeToken = async (token) => {
     try {
       await AsyncStorage.setItem('token', token);
-      console.log("Token stored successfully");
+      console.log('Token stored successfully');
     } catch (error) {
       console.error('Failed to store the token', error);
     }
@@ -25,12 +25,11 @@ const Userlogin = ({navigation}) => {
 
     try {
       // Make a login request to your server
-      const response = await axios.post(`http://192.168.1.12:9001/auth/login`, {
+      const response = await axios.post(`http://192.168.1.10:9001/auth/login`, {
         userName: username,
         password: password,
       });
 
-      // Log the full response to understand the response structure
       console.log('API Response:', response.data);
 
       if (response.status === 200) {
@@ -81,6 +80,11 @@ const Userlogin = ({navigation}) => {
       />
 
       <Button title="Login" onPress={handleLogin} />
+
+      {/* Add Registration Navigation Link */}
+      <TouchableOpacity onPress={() => navigation.navigate('login')}>
+        <Text style={styles.registerLink}>Don't have an account? Register here</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };
@@ -106,6 +110,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 20,
     fontSize: 16,
+  },
+  registerLink: {
+    marginTop: 20,
+    fontSize: 16,
+    color: '#1E90FF',
+    textAlign: 'center',
   },
 });
 
