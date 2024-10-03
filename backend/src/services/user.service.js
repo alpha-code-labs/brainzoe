@@ -25,7 +25,7 @@ const registerByUserName =  async(userName, password)=>{
 }
 
 const updateUserCoins = async (userId, coins)=>{
-    const user = findUserById(userId);
+    const user = await findUserById(userId);
     user.coins += coins;
     return await user.save();
     //return await User.findOneAndUpdate({_id:userId}, {$set: {coins}}, {new:true})
