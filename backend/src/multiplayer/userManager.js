@@ -129,9 +129,11 @@ async function addUser({ io, socket, message}) {
         It doesn't matter whether the game has started or not */
 
     for(let i=0; i<rooms.length; i++){
-        if(rooms[i].users.map(u=>u.userId).includes(user.userId)){
+        console.log(rooms[i].users.map(u=>u.username), 'current users in room', user.username, 'what we are searching');
+        if(rooms[i].users.map(u=>u.username).includes(user.username)){
             //player already exists in room send them updated room
-            socket.join(roomName);
+            console.log('user found in some room...')
+            socket.join(rooms[i].roomName);
             socket.emit('joined', rooms[i]);
             return;
         }
