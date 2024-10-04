@@ -26,7 +26,7 @@ export const sendAuthenticatedRequest = async () => {
 
   if (token) {
     try {
-      const response = await axios.get(`http://192.168.1.10:9001/user/profile`, {
+      const response = await axios.get(`http://192.168.1.13:9001/user/profile`, {
         headers: {
           'Authorization': `Bearer ${token}`, // Send the token in the Authorization header
         },

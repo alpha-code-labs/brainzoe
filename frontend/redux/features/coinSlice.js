@@ -9,7 +9,7 @@ export const fetchcoins = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       // Make the API request with the correct headers
-      const response = await axios.get('http://192.168.1.10:9001/user/coins', {
+      const response = await axios.get('http://192.168.1.13:9001/user/coins', {
         headers: {
           Authorization: `Bearer ${await AsyncStorage.getItem('token')}`,
         },
@@ -42,7 +42,7 @@ export const updatedCoinsonBackend = createAsyncThunk ('coin/updatedCoinsonBacke
 try{
 const token = await AsyncStorage.getItem('token');
 console.log('trying to update coins', token, newCoins);
-const response = await axios.patch('http://192.168.1.10:9001/user/coins', {coins:newCoins},
+const response = await axios.patch('http://192.168.1.13:9001/user/coins', {coins:newCoins},
   {
     headers:{
        Authorization: `Bearer ${token}`

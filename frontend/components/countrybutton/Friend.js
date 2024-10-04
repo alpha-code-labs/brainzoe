@@ -741,8 +741,8 @@ export default function App() {
       return;
     }
 
-    // Emit answer to the server
-    socket.emit('ans-update', 
+    // Emit answer to the  soxkeet.io server
+    socket.emit('ans-update',    
       {
       ans: guess,
       questionId: currentQuestion.id,
@@ -799,7 +799,7 @@ useEffect(() => {
       socket.connect();
     }
 
-    socket.emit('join-room', { username });
+    socket.emit('join-room', { username});
 
     // Handle a timeout for joining
     // setTimeout(() => {
@@ -819,8 +819,8 @@ useEffect(() => {
       return;
     }
 
-    socket.emit('user-message', {
-      content: message,
+    socket.emit('user-message', { //from here message is eventing
+      content: message, //i m sending these data
       to: room.roomName,
       sender: username,
     });
@@ -886,18 +886,18 @@ useEffect(() => {
           {/* Waiting Lobby */}
           {!room.gameStarted && (
             <View style={styles.waitingLobby}>
+              <Text style={styles.playersHeader}>
+                Players ({users.length}/10):
+              </Text>
               <Text style={styles.waitingText}>
                 Waiting for other players to join...
               </Text>
               <TouchableOpacity onPress={leaveRoom}>
   <Text>Leave Room</Text>
 </TouchableOpacity>
-              <Text style={styles.playersHeader}>
-                Players ({users.length}/10):
-              </Text>
               <FlatList
   data={users}
-  keyExtractor={(item) => item.socketId || item.username} // Use unique id from your data
+  keyExtractor={(item) =>  item.username} // Use unique id from your data
   renderItem={({ item }) => (
     <Text style={styles.player}>{item.username}</Text>
   )}
