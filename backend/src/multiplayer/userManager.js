@@ -214,6 +214,7 @@ async function addUser({ io, socket, message}) {
                 if(lastQuestion && lastQuestion.id == 9){
                     io.in(roomName).emit('game-end');
                     clearInterval(interval);
+                    rooms = rooms.filter(room=>room.roomName != roomName);
                 }
                 
             },10000);
