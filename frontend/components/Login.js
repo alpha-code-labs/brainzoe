@@ -18,7 +18,7 @@ const Register = ({navigation}) => {
     
     try {
       // Send a registration request to your server
-      const response = await axios.post('http://192.168.1.13:9001/auth/register', {
+      const response = await axios.post('http://192.168.1.14:9001/auth/register', {
         userName: username,
         password: password,
       });

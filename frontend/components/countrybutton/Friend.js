@@ -583,6 +583,7 @@ export default function App() {
   const [correctAnswer, setCorrectAnswer] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [timer, setTimer] = useState(0);
 
   // New State Variable for User's Answer
   const [userAnswer, setUserAnswer] = useState('');
@@ -802,13 +803,13 @@ useEffect(() => {
     socket.emit('join-room', { username});
 
     // Handle a timeout for joining
-    // setTimeout(() => {
-    //   if (!room) {
-    //     Alert.alert('Timeout', 'Unable to join the room. Please try again.');
-    //     setIsLoading(false);
-    //   }
-    // }, 10000); 
-        // socket.disconnect(); 
+    setTimeout(() => {
+      if (!room) {
+        Alert.alert('Timeout', 'Unable to join the room. Please try again.');
+        setIsLoading(false);
+      }
+    }, 10000); 
+        socket.disconnect(); 
 
   };
 
