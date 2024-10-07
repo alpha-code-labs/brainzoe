@@ -565,6 +565,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { socket } from '../../socket';
+import { Socket } from 'socket.io-client';
 
 // Import the shared socket instance
 
@@ -572,6 +573,7 @@ import { socket } from '../../socket';
 export default function App() {
   // State Variables
   const [username, setUsername] = useState('');
+  const [userId, setUserId] = useState(null);
   const [room, setRoom] = useState(null);
   const [message, setMessage] = useState('');
   const [chatMessages, setChatMessages] = useState([]);
@@ -624,9 +626,27 @@ export default function App() {
       console.log('🏠 Joined room successfully!', roomData);
       setRoom(roomData);
       setUsers(roomData.users);
+      let currentUser = roomData.users.filter(usr=>usr.username == username);
+      setUserId(currentUser.userId);
       setChatMessages(roomData.messages);
       setIsLoading(false);
     });
+   
+    // //when game will end user will disconnected
+    // socket.on('disconnect', ({userId, to})=>{
+    //   console.log(`User with ID ${userId} disconnected from room ${to}`);
+
+    //   //Update the users in the room by removing the disconnected user
+    //   setUsers((prevUsers)=>prevUsers.filter((user)=>user.id !== userId))   
+      
+    //   //Optionally, show a notification or update the UI 
+    //   setChatMessages((prevMessages)=>[
+    //     ...prevMessages,
+    //     {system: true, message:`User with ID ${userId} has left the room `}
+    //   ])
+      
+      
+    // })
 
     // Listen for room updates
     socket.on('room-update', (updatedRoom) => {
@@ -657,6 +677,21 @@ export default function App() {
       // Start Timer
       startTimer(question.maxTime);
     });
+
+
+ 
+    // const intervel = setInterval(
+    //   ()=>{
+    //     setTimeout((prev)=>{
+    //      if(prev==50){
+    //       console.log("waiting room");
+          
+    //      }
+    //    return prev +1;
+    //     })
+    //   }
+    // )
+  
 
     // Listen for user updates (scores and answers)
     socket.on('user-update', ({ users: updatedUsers }) => {
@@ -747,7 +782,7 @@ export default function App() {
       {
       ans: guess,
       questionId: currentQuestion.id,
-      socketId: socket.id,
+      userId,
       roomName: room.roomName,
     });
 
@@ -803,13 +838,15 @@ useEffect(() => {
     socket.emit('join-room', { username});
 
     // Handle a timeout for joining
-    setTimeout(() => {
-      if (!room) {
-        Alert.alert('Timeout', 'Unable to join the room. Please try again.');
-        setIsLoading(false);
-      }
-    }, 10000); 
-        socket.disconnect(); 
+    // setTimeout(() => {
+    //   if (!room) {
+    //     Alert.alert('Timeout', 'Unable to join the room. Please try again.');
+    //     setIsLoading(false);
+    //   }
+    // }, 10000); 
+    // const disconnectted =    socket.disconnect(); 
+    //     console.log("disconnect", disconnectted);
+        
 
   };
 
@@ -898,7 +935,7 @@ useEffect(() => {
 </TouchableOpacity>
               <FlatList
   data={users}
-  keyExtractor={(item) =>  item.username} // Use unique id from your data
+  keyExtractor={(user) => user.userId} // Use unique id from your data
   renderItem={({ item }) => (
     <Text style={styles.player}>{item.username}</Text>
   )}
@@ -973,7 +1010,7 @@ useEffect(() => {
               <View style={styles.scoresContainer}>
                 <Text style={styles.scoresHeader}>Scores:</Text>
                 {users.map((user) => (
-                  <Text key={user.socketId} style={styles.score}>
+                  <Text key={user.userId} style={styles.score}>
                     {user.username}: {user.score}
                   </Text>
                 ))}
