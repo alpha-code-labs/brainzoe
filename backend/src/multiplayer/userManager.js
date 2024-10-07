@@ -1,6 +1,6 @@
 const userService = require('../services/user.service.js');
 
-const rooms = [];
+let rooms = [];
 const maxWaitToStartGame = 50; //in seconds
 const maxResponseTime = 10; //in seconds
 const questions = [
@@ -214,7 +214,7 @@ async function addUser({ io, socket, message}) {
                 if(lastQuestion && lastQuestion.id == 9){
                     io.in(roomName).emit('game-end');
                     clearInterval(interval);
-                    rooms = rooms.filter(room=>room.roomName != roomName);
+                    rooms = rooms.filter(room=>room.roomName != roomName);``
                 }
                 
             },10000);
