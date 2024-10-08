@@ -1,9 +1,112 @@
 const userService = require('../services/user.service.js');
+const shuffle = require('lodash.shuffle')
 
 let rooms = [];
+const questionsList = [
+    {
+        countryCode: 'in',
+        totalLetters: 5,
+        hint: 'I-N--A',
+        ans: 'INDIA',
+        maxTime:10,
+        id:0,
+        timedOut: false,
+        userAnswers: [],
+    },
+    {
+        countryCode: 'us',
+        totalLetters: 6,
+        hint: 'U--T-D',
+        ans: 'UNITED',
+        maxTime:10,
+        id:1,
+        timedOut: false,
+        userAnswers: [],
+    },
+    {
+        countryCode: 'uk',
+        totalLetters: 7,
+        hint: 'E-G-A-D',
+        ans: 'ENGLAND',
+        maxTime:10,
+        id:2,
+        timedOut: false,
+        userAnswers: [],
+    },
+    {
+        countryCode: 'ca',
+        totalLetters: 6,
+        hint: 'C-N-D-',
+        ans: 'CANADA',
+        maxTime:10,
+        id:3,
+        timedOut: false,
+        userAnswers: [],
+    },
+    {
+        countryCode: 'au',
+        totalLetters: 9,
+        hint: 'A-S-R-L-A',
+        ans: 'AUSTRALIA',
+        maxTime:10,
+        id:4,
+        timedOut: false,
+        userAnswers: [],
+    },
+    {
+        countryCode: 'fr',
+        totalLetters: 6,
+        hint: 'F-A-C-',
+        ans: 'FRANCE',
+        maxTime:10,
+        id:5,
+        timedOut: false,
+        userAnswers: [],
+    },
+    {
+        countryCode: 'de',
+        totalLetters: 7,
+        hint: 'G-R-A-Y',
+        ans: 'GERMANY',
+        maxTime:10,
+        id:6,
+        timedOut: false,
+        userAnswers: [],
+    },
+    {
+        countryCode: 'jp',
+        totalLetters: 5,
+        hint: 'J-P-N-',
+        ans: 'JAPAN',
+        maxTime:10,
+        id:7,
+        timedOut: false,
+        userAnswers: [],
+    },
+    {
+        countryCode: 'it',
+        totalLetters: 5,
+        hint: 'I-A-Y',
+        ans: 'ITALY',
+        maxTime:10,
+        id:8,
+        timedOut: false,
+        userAnswers: [],
+    },
+    {
+        countryCode: 'br',
+        totalLetters: 6,
+        hint: 'B-A-I-',
+        ans: 'BRAZIL',
+        maxTime:10,
+        id:9,
+        timedOut: false,
+        userAnswers: [],
+    }
+];
 const maxWaitToStartGame = 50; //in seconds
 const maxResponseTime = 10; //in seconds
-const questions = [
+let questions = [
     {
         countryCode: 'in',
         totalLetters: 5,
@@ -214,7 +317,8 @@ async function addUser({ io, socket, message}) {
                 if(lastQuestion && lastQuestion.id == 9){
                     io.in(roomName).emit('game-end');
                     clearInterval(interval);
-                    rooms = rooms.filter(room=>room.roomName != roomName);``
+                    rooms = rooms.filter(room=>room.roomName != roomName);
+                    questions = shuffle(questionsList).slice(0,10);
                 }
                 
             },10000);
