@@ -33,16 +33,20 @@ export default function App() {
   const [correctAnswer, setCorrectAnswer] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [timer, setTimer] = useState(0);
+  const [startcountdown, setStartcountdown] = useState(null);
 
   // New State Variable for User's Answer
   const [userAnswer, setUserAnswer] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  //winner 
+  const [winner, setWinner] = useState(null);
+
   // Refs
   const messageInputRef = useRef(null);
   const answerInputRef = useRef(null); // Single answer input ref
   const timerRef = useRef(null);
+  const timerIntervalRef = useRef(null);  // To keep track of the interval
 
   useEffect(() => {
     // Connect the socket when the component mounts
@@ -70,14 +74,17 @@ export default function App() {
     });
 
     // Listen for room joined
-    socket.on('joined', (roomData) => {
+    socket.on('joined', (roomData, startsIn) => {
       console.log('🏠 Joined room successfully!', roomData);
+      
+      
       setRoom(roomData);
       setUsers(roomData.users);
       let currentUser = roomData.users.filter(usr=>usr.username == username)[0];
       setUserId(currentUser.userId);
       setChatMessages(roomData.messages);
       setIsLoading(false);
+
     });
    
     // //when game will end user will disconnected
@@ -102,6 +109,27 @@ export default function App() {
       setRoom(updatedRoom);
       setUsers(updatedRoom.users);
       setChatMessages(updatedRoom.messages);
+
+      if(updatedRoom !== null){
+        setStartcountdown(updatedRoom.startsIn);
+
+        if(timerIntervalRef.current){
+          clearInterval(timerIntervalRef.current)
+        }
+        timerIntervalRef.current = setInterval(()=>{
+          setStartcountdown((prev)=>{
+       if(prev>0){
+        return prev -1;
+
+       }else{
+        clearInterval(timerIntervalRef.current)
+        return 0;
+       }
+          })
+        },1000)
+      }
+      console.log("updateroom",updatedRoom.startsIn);
+      
     });
 
     // Listen for new chat messages
@@ -146,11 +174,22 @@ export default function App() {
       console.log('👥 User updates received:', updatedUsers);
       setUsers(updatedUsers);
     });
+   
+ const calculateWinner = () =>{
+  if(users && users.length > 0){
+    const sortedUsers = [...users].sort((a,b)=>b.score - a.score);
+    const topUser = sortedUsers[0];
+    setWinner(topUser);
+    Alert.alert('Game Over', `The winner is ${topUser.username} with ${topUser.score} points!`);
+
+  }
+ }
 
     // Listen for game end
     socket.on('game-end', () => {
       console.log('🏁 Game has ended.');
       setGameEnded(true);
+      calculateWinner(); // Calculate the winner when the game ends
       Alert.alert('Game Over', 'The game has ended.');
       resetGame();
     });
@@ -187,7 +226,7 @@ export default function App() {
       // Do not disconnect the socket here if it's shared across components
       
       //LEAVE THE ROOMS
-      leaveRoom()
+      // leaveRoom()
     };
   }, [username]);
 
@@ -259,18 +298,18 @@ export default function App() {
     // Do not disconnect the socket here if it's shared across components
   };
 // Function: Leave Room
-const leaveRoom = () => {
-  if (room) {
-    socket.emit('leave-room', { roomName: room.roomName, socketId: socket.id });
-    resetGame(); // Reset local state
-  }
-};
+// const leaveRoom = () => {
+//   if (room) {
+//     socket.emit('leave-room', { roomName: room.roomName, socketId: socket.id });
+//     resetGame(); // Reset local state
+//   }
+// };
 
-useEffect(() => {
-  return () => {
-    leaveRoom();
-  };
-}, []);
+// useEffect(() => {
+//   return () => {
+//     leaveRoom();
+//   };
+// }, []);
 
   // Function: Join Room
   const joinRoom = () => {
@@ -366,10 +405,10 @@ useEffect(() => {
         // Main Game Screen
         <View style={styles.gameContainer}>
           {/* Top Bar: Username and Coins */}
-          <View style={styles.topBar}>
+          {/* <View style={styles.topBar}>
             <Text style={styles.playerName}>{username}</Text>
             <Text style={styles.coinText}>Coins: {coinCount}</Text>
-          </View>
+          </View> */}
 
           {/* Waiting Lobby */}
           {!room.gameStarted && (
@@ -378,11 +417,23 @@ useEffect(() => {
                 Players ({users.length}/10):
               </Text>
               <Text style={styles.waitingText}>
-                Waiting for other players to join...
-              </Text>
-              <TouchableOpacity onPress={leaveRoom}>
+                Waiting for other players to join... 
+               </Text>
+              {/* <TouchableOpacity onPress={leaveRoom}>
   <Text>Leave Room</Text>
-</TouchableOpacity>
+</TouchableOpacity> */}
+
+  {gameEnded && winner && (
+    <View>
+      <Text>
+        The winner is {winner.username} with {winner.score}
+      </Text>
+    </View>
+  )}
+
+    {startcountdown !== null && (
+      <Text>Game starts in: {startcountdown}s</Text>
+    )}
               <FlatList
   data={users}
   keyExtractor={(user) => user.userId} // Use unique id from your data
