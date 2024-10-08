@@ -237,6 +237,7 @@ async function removeUser({io, socket, userId}) {
 
 async function updateAnswer({io, socket, userId, ans, questionId, roomName}){
      // Find the room by roomName
+     console.log(`received ans: ${ans} for roomaname ${roomName} and userId: ${userId} for qId: ${questionId}`)
      let room = rooms.find(r => r.roomName == roomName);
      if (!room) return;
  
