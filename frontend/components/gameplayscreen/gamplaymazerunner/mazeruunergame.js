@@ -289,8 +289,8 @@ const GridScreen = () => {
 
         const cell = grid[nextMove.row][nextMove.col];
 
-        const animationDuration = 200; // Adjust as needed
-        const movementDelay = 300; // Delay between movements in milliseconds
+        const animationDuration = 2000; // Adjust as needed
+        const movementDelay = 2500; // Delay between movements in milliseconds
 
         if (cell.type === CELL_TYPES.END) {
           // Move the computer to the end position before showing the alert

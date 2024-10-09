@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Modal,
+} from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -19,6 +26,7 @@ const MathsGame = () => {
   const [motivationText, setMotivationText] = useState(''); // State to store the motivational message
   const [score, setScore] = useState(0); // State to track the score
   const [level, setLevel] = useState(1); // State to track the difficulty level
+  const [hasContinued, setHasContinued] = useState(false); // State to track if the user has continued
 
   // Reanimated shared values
   const problemScale = useSharedValue(0);
@@ -199,8 +207,18 @@ const MathsGame = () => {
     setMotivationText('');
     setScore(0);
     setLevel(1);
+    setHasContinued(false); // Reset continue state
     const newQuestions = Array.from({ length: 10 }, () => generateProblem());
     setQuestions(newQuestions);
+  };
+
+  // Function to continue the game after losing
+  const continueGame = () => {
+    setGameOver(false);
+    setTimer(10); // Reset timer
+    setMessage('');
+    setHasContinued(true); // User has used their continue
+    // In the future, you can trigger the ad here before resuming the game
   };
 
   // Animated styles
@@ -249,7 +267,9 @@ const MathsGame = () => {
 
       {/* Motivational message */}
       {showMotivation && (
-        <Animated.View style={[styles.motivationContainer, animatedMotivationStyle]}>
+        <Animated.View
+          style={[styles.motivationContainer, animatedMotivationStyle]}
+        >
           <Text style={styles.motivationText}>{motivationText}</Text>
         </Animated.View>
       )}
@@ -265,21 +285,57 @@ const MathsGame = () => {
       />
 
       {/* Styled Submit button */}
-      <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={gameOver}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleSubmit}
+        disabled={gameOver}
+      >
         <Text style={styles.buttonText}>Submit</Text>
       </TouchableOpacity>
-
-      {/* Restart button */}
-      {gameOver && (
-        <TouchableOpacity style={styles.restartButton} onPress={restartGame}>
-          <Text style={styles.buttonText}>Restart Game</Text>
-        </TouchableOpacity>
-      )}
 
       {/* Animated feedback message */}
       <Animated.View style={animatedMessageStyle}>
         <Text style={styles.messageText}>{message}</Text>
       </Animated.View>
+
+      {/* Game Over Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={gameOver}
+        onRequestClose={() => {
+          // Optionally handle modal close
+        }}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Game Over</Text>
+            <Text style={styles.modalMessage}>{message}</Text>
+            <Text style={styles.modalScore}>Your Score: {score}</Text>
+
+            {/* Continue Button */}
+            {!hasContinued && (
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={continueGame}
+              >
+                <Text style={styles.modalButtonText}>Continue</Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Restart button */}
+            <TouchableOpacity
+              style={[
+                styles.modalButton,
+                hasContinued && { marginTop: 20 },
+              ]}
+              onPress={restartGame}
+            >
+              <Text style={styles.modalButtonText}>Restart Game</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -326,13 +382,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontWeight: 'bold',
   },
-  restartButton: {
-    backgroundColor: '#FF5722', // Orange background
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 10,
-    marginTop: 20,
-  },
   motivationContainer: {
     marginTop: 10,
     backgroundColor: '#FFD700', // Yellow background for motivation
@@ -362,6 +411,48 @@ const styles = StyleSheet.create({
   questionCounter: {
     fontSize: 18,
     marginBottom: 20,
+  },
+  // Modal styles
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 22,
+    backgroundColor: 'rgba(0,0,0,0.5)', // Semi-transparent background
+  },
+  modalContent: {
+    width: '80%',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  modalMessage: {
+    fontSize: 20,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  modalScore: {
+    fontSize: 24,
+    marginBottom: 20,
+  },
+  modalButton: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 10,
+    marginTop: 10,
+  },
+  modalButtonText: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
 

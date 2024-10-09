@@ -4,7 +4,6 @@ import {
   Text,
   View,
   Alert,
-  Keyboard,
   FlatList,
   TextInput,
   TouchableOpacity,
@@ -13,14 +12,15 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { socket } from '../../socket';
-import { Socket } from 'socket.io-client';
-
-// Import the shared socket instance
-
+import { fetchUserProfile } from '../../redux/features/userSlice';
+import { useDispatch, useSelector } from 'react-redux';
 
 export default function App() {
+  // Access the user from the Redux state
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.userAuth || {});
+
   // State Variables
-  const [username, setUsername] = useState('');
   const [userId, setUserId] = useState(null);
   const [room, setRoom] = useState(null);
   const [message, setMessage] = useState('');
@@ -34,19 +34,20 @@ export default function App() {
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [startcountdown, setStartcountdown] = useState(null);
-
-  // New State Variable for User's Answer
   const [userAnswer, setUserAnswer] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  //winner 
   const [winner, setWinner] = useState(null);
 
   // Refs
   const messageInputRef = useRef(null);
   const answerInputRef = useRef(null); // Single answer input ref
   const timerRef = useRef(null);
-  const timerIntervalRef = useRef(null);  // To keep track of the interval
+  const timerIntervalRef = useRef(null); // To keep track of the interval
+
+  // Fetch the user profile when the component mounts
+  useEffect(() => {
+    dispatch(fetchUserProfile());
+  }, [dispatch]);
 
   useEffect(() => {
     // Connect the socket when the component mounts
@@ -74,34 +75,20 @@ export default function App() {
     });
 
     // Listen for room joined
-    socket.on('joined', (roomData, startsIn) => {
+    socket.on('joined', (roomData) => {
       console.log('🏠 Joined room successfully!', roomData);
-      
-      
+
       setRoom(roomData);
       setUsers(roomData.users);
-      let currentUser = roomData.users.filter(usr=>usr.username == username)[0];
-      setUserId(currentUser.userId);
+      const currentUser = roomData.users.find(
+        (usr) => usr.username === user.userName
+      );
+      if (currentUser) {
+        setUserId(currentUser.userId);
+      }
       setChatMessages(roomData.messages);
       setIsLoading(false);
-
     });
-   
-    // //when game will end user will disconnected
-    // socket.on('disconnect', ({userId, to})=>{
-    //   console.log(`User with ID ${userId} disconnected from room ${to}`);
-
-    //   //Update the users in the room by removing the disconnected user
-    //   setUsers((prevUsers)=>prevUsers.filter((user)=>user.id !== userId))   
-      
-    //   //Optionally, show a notification or update the UI 
-    //   setChatMessages((prevMessages)=>[
-    //     ...prevMessages,
-    //     {system: true, message:`User with ID ${userId} has left the room `}
-    //   ])
-      
-      
-    // })
 
     // Listen for room updates
     socket.on('room-update', (updatedRoom) => {
@@ -110,26 +97,23 @@ export default function App() {
       setUsers(updatedRoom.users);
       setChatMessages(updatedRoom.messages);
 
-      if(updatedRoom !== null){
+      if (updatedRoom !== null) {
         setStartcountdown(updatedRoom.startsIn);
 
-        if(timerIntervalRef.current){
-          clearInterval(timerIntervalRef.current)
+        if (timerIntervalRef.current) {
+          clearInterval(timerIntervalRef.current);
         }
-        timerIntervalRef.current = setInterval(()=>{
-          setStartcountdown((prev)=>{
-       if(prev>0){
-        return prev -1;
-
-       }else{
-        clearInterval(timerIntervalRef.current)
-        return 0;
-       }
-          })
-        },1000)
+        timerIntervalRef.current = setInterval(() => {
+          setStartcountdown((prev) => {
+            if (prev > 0) {
+              return prev - 1;
+            } else {
+              clearInterval(timerIntervalRef.current);
+              return 0;
+            }
+          });
+        }, 1000);
       }
-      console.log("updateroom",updatedRoom.startsIn);
-      
     });
 
     // Listen for new chat messages
@@ -154,50 +138,42 @@ export default function App() {
       startTimer(question.maxTime);
     });
 
-
- 
-    // const intervel = setInterval(
-    //   ()=>{
-    //     setTimeout((prev)=>{
-    //      if(prev==50){
-    //       console.log("waiting room");
-          
-    //      }
-    //    return prev +1;
-    //     })
-    //   }
-    // )
-  
-
     // Listen for user updates (scores and answers)
     socket.on('user-update', ({ users: updatedUsers }) => {
       console.log('👥 User updates received:', updatedUsers);
       setUsers(updatedUsers);
     });
-   
- const calculateWinner = () =>{
-  if(users && users.length > 0){
-    const sortedUsers = [...users].sort((a,b)=>b.score - a.score);
-    const topUser = sortedUsers[0];
-    setWinner(topUser);
-    Alert.alert('Game Over', `The winner is ${topUser.username} with ${topUser.score} points!`);
 
-  }
- }
+    // Function to calculate the winner
+    const calculateWinner = () => {
+      if (users && users.length > 0) {
+        const sortedUsers = [...users].sort((a, b) => b.score - a.score);
+        const topUser = sortedUsers[0];
+        setWinner(topUser);
+        Alert.alert(
+          'Game Over',
+          `The winner is ${topUser.username} with ${topUser.score} points!`
+        );
+      }
+    };
 
     // Listen for game end
     socket.on('game-end', () => {
-      console.log('🏁 Game has ended.');
       setGameEnded(true);
       calculateWinner(); // Calculate the winner when the game ends
+
+      console.log('🏁 Game has ended.');
+
       Alert.alert('Game Over', 'The game has ended.');
       resetGame();
     });
 
     // Listen for correct guess
-    socket.on('correctGuess', ({ username: winner, points }) => {
-      console.log(`🎯 ${winner} answered correctly and earned ${points} points.`);
-      if (winner === username) {
+    socket.on('correctGuess', ({ username: winnerName, points }) => {
+      console.log(
+        `🎯 ${winnerName} answered correctly and earned ${points} points.`
+      );
+      if (winnerName === user.userName) {
         setCoinCount((prev) => prev + points);
         // You can add additional UI feedback here
       }
@@ -223,12 +199,8 @@ export default function App() {
       socket.off('game-end');
       socket.off('correctGuess');
       socket.off('endRound');
-      // Do not disconnect the socket here if it's shared across components
-      
-      //LEAVE THE ROOMS
-      // leaveRoom()
     };
-  }, [username]);
+  }, [user.userName]);
 
   // Function: Start Timer
   const startTimer = (duration) => {
@@ -258,29 +230,29 @@ export default function App() {
 
     const guess = userAnswer.trim().toUpperCase();
 
-
     if (guess === '') {
       // Alert.alert('Error', 'Please enter an answer.');
       return;
     }
 
-    // Emit answer to the  soxkeet.io server
-    socket.emit('ans-update',    
-      {
+    // Emit answer to the socket.io server
+    socket.emit('ans-update', {
       ans: guess,
       questionId: currentQuestion.id,
       userId,
       roomName: room.roomName,
     });
 
-    console.log(`sent ans: ${guess}, ${userId}, ${room.roomName} qId: ${currentQuestion.id} for evaluation`)
+    console.log(
+      `sent ans: ${guess}, ${userId}, ${room.roomName} qId: ${currentQuestion.id} for evaluation`
+    );
 
     setIsSubmitting(true); // Disable submit button while processing
     setUserAnswer(''); // Clear the input
 
     // Do not handle result here; server will send updates
   };
- 
+
   // Function: Reset Game
   const resetGame = () => {
     setRoom(null);
@@ -292,29 +264,17 @@ export default function App() {
     setMessage('');
     setUserAnswer('');
     setCorrectAnswer('');
+    setWinner(null);
     if (timerRef.current) {
       clearInterval(timerRef.current);
     }
     // Do not disconnect the socket here if it's shared across components
   };
-// Function: Leave Room
-// const leaveRoom = () => {
-//   if (room) {
-//     socket.emit('leave-room', { roomName: room.roomName, socketId: socket.id });
-//     resetGame(); // Reset local state
-//   }
-// };
-
-// useEffect(() => {
-//   return () => {
-//     leaveRoom();
-//   };
-// }, []);
 
   // Function: Join Room
   const joinRoom = () => {
-    if (username.trim() === '') {
-      Alert.alert('Error', 'Please enter a username.');
+    if (!user || !user.userName) {
+      Alert.alert('Error', 'User information is not available.');
       return;
     }
 
@@ -324,19 +284,7 @@ export default function App() {
       socket.connect();
     }
 
-    socket.emit('join-room', { username});
-
-    // Handle a timeout for joining
-    // setTimeout(() => {
-    //   if (!room) {
-    //     Alert.alert('Timeout', 'Unable to join the room. Please try again.');
-    //     setIsLoading(false);
-    //   }
-    // }, 10000); 
-    // const disconnectted =    socket.disconnect(); 
-    //     console.log("disconnect", disconnectted);
-        
-
+    socket.emit('join-room', { username: user.userName });
   };
 
   // Function: Send Chat Message
@@ -346,15 +294,19 @@ export default function App() {
       return;
     }
 
-    socket.emit('user-message', { //from here message is eventing
-      content: message, //i m sending these data
+    socket.emit('user-message', {
+      content: message,
       to: room.roomName,
-      sender: username,
+      sender: user.userName,
     });
 
     setChatMessages((prev) => [
       ...prev,
-      { sender: username, message: message.trim(), timeStamp: new Date() },
+      {
+        sender: user.userName,
+        message: message.trim(),
+        timeStamp: new Date(),
+      },
     ]);
     setMessage('');
     if (messageInputRef.current) {
@@ -369,12 +321,9 @@ export default function App() {
         // Lobby Screen: Enter Username and Join
         <View style={styles.lobbyContainer}>
           <Text style={styles.title}>Country Guessing Game</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter your username"
-            value={username}
-            onChangeText={setUsername}
-          />
+          {/* <Text style={styles.usernameText}>
+            Username: {user.userName}
+          </Text> */}
           <TouchableOpacity
             style={styles.button}
             onPress={joinRoom}
@@ -386,8 +335,6 @@ export default function App() {
               <Text style={styles.buttonText}>Join Game</Text>
             )}
           </TouchableOpacity>
- 
-
 
           {/* Connection Status */}
           <View style={styles.statusContainer}>
@@ -406,7 +353,7 @@ export default function App() {
         <View style={styles.gameContainer}>
           {/* Top Bar: Username and Coins */}
           {/* <View style={styles.topBar}>
-            <Text style={styles.playerName}>{username}</Text>
+            <Text style={styles.playerName}>{user.userName}</Text>
             <Text style={styles.coinText}>Coins: {coinCount}</Text>
           </View> */}
 
@@ -417,31 +364,31 @@ export default function App() {
                 Players ({users.length}/10):
               </Text>
               <Text style={styles.waitingText}>
-                Waiting for other players to join... 
-               </Text>
-              {/* <TouchableOpacity onPress={leaveRoom}>
-  <Text>Leave Room</Text>
-</TouchableOpacity> */}
+                Waiting for other players to join...
+              </Text>
+              {/* Display user's username */}
+              {/* <Text style={styles.usernameText}>
+                Username: {user.userName}
+              </Text> */}
 
-  {gameEnded && winner && (
-    <View>
-      <Text>
-        The winner is {winner.username} with {winner.score}
-      </Text>
-    </View>
-  )}
+              {gameEnded && winner && (
+                <View>
+                  <Text>
+                    The winner is {winner.userName} with {winner.score}
+                  </Text>
+                </View>
+              )}
 
-    {startcountdown !== null && (
-      <Text>Game starts in: {startcountdown}s</Text>
-    )}
+              {startcountdown !== null && (
+                <Text>Game starts in: {startcountdown}s</Text>
+              )}
               <FlatList
-  data={users}
-  keyExtractor={(user) => user.userId} // Use unique id from your data
-  renderItem={({ item }) => (
-    <Text style={styles.player}>{item.username}</Text>
-  )}
-/>
-
+                data={users}
+                keyExtractor={(user) => user.userId}
+                renderItem={({ item }) => (
+                  <Text style={styles.player}>{item.username}</Text>
+                )}
+              />
 
               {/* Chat Section */}
               <View style={styles.chatBox}>
@@ -481,7 +428,9 @@ export default function App() {
                 <Text style={styles.hintText}>
                   Hint: {currentQuestion.hint}
                 </Text>
-                <Text style={styles.timerText}>Time Left: {timeLeft}s</Text>
+                <Text style={styles.timerText}>
+                  Time Left: {timeLeft}s
+                </Text>
               </View>
 
               {/* Single Answer Input */}
@@ -510,23 +459,23 @@ export default function App() {
               {/* User Scores */}
               <View style={styles.scoresContainer}>
                 <Text style={styles.scoresHeader}>Scores:</Text>
-                {users.map((user) => (
-                  <Text key={user.userId} style={styles.score}>
-                    {user.username}: {user.score}
+                {users.map((userItem) => (
+                  <Text key={userItem.userId} style={styles.score}>
+                    {userItem.username}: {userItem.score}
                   </Text>
                 ))}
               </View>
 
               {/* Chat Section */}
               <View style={styles.chatBox}>
-              <ScrollView>
-  {chatMessages.map((msg, index) => (
-    <View key={index} style={styles.chatMessage}>
-      <Text style={styles.chatSender}>{msg.sender}:</Text>
-      <Text style={styles.chatText}>{msg.message}</Text>
-    </View>
-  ))}
-</ScrollView>
+                <ScrollView>
+                  {chatMessages.map((msg, index) => (
+                    <View key={index} style={styles.chatMessage}>
+                      <Text style={styles.chatSender}>{msg.sender}:</Text>
+                      <Text style={styles.chatText}>{msg.message}</Text>
+                    </View>
+                  ))}
+                </ScrollView>
 
                 <View style={styles.chatInputContainer}>
                   <TextInput
@@ -553,13 +502,19 @@ export default function App() {
   );
 }
 
-
+// Stylesheet
 
 // Stylesheet
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+  },
+  usernameText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginVertical: 10,
+    textAlign: 'center',
   },
   lobbyContainer: {
     flex: 1,
